@@ -394,6 +394,7 @@ void error_init(const char *argv0)
     /* Set the program name for error_print_loc(). */
     g_set_prgname(p ? p + 1 : argv0);
 
+#if 0 /* QEMU log handler disabled to prevent deadlock with SPICE logging */
     /*
      * This sets up glib logging so libraries using it also print their logs
      * through error_report(), warn_report(), info_report().
@@ -401,4 +402,5 @@ void error_init(const char *argv0)
     g_log_set_default_handler(qemu_log_func, NULL);
     g_warn_if_fail(qemu_glog_domains == NULL);
     qemu_glog_domains = g_strdup(g_getenv("G_MESSAGES_DEBUG"));
+#endif
 }
