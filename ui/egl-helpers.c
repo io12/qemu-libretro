@@ -548,7 +548,7 @@ static int qemu_egl_init_dpy_platform(EGLNativeDisplayType native,
         PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplayEXT =
             (void *) eglGetProcAddress("eglGetPlatformDisplayEXT");
         if (getPlatformDisplayEXT && platform != 0) {
-            dpy = getPlatformDisplayEXT(platform, native, NULL);
+            dpy = getPlatformDisplayEXT(platform, (void *)native, NULL);
         }
     }
 
@@ -569,7 +569,7 @@ static int qemu_egl_init_dpy_platform(EGLNativeDisplayType native,
 
 int qemu_egl_init_dpy_surfaceless(DisplayGLMode mode)
 {
-    return qemu_egl_init_dpy_platform(NULL, EGL_PLATFORM_SURFACELESS_MESA, mode);
+    return qemu_egl_init_dpy_platform(EGL_DEFAULT_DISPLAY, EGL_PLATFORM_SURFACELESS_MESA, mode);
 }
 
 #if defined(CONFIG_X11) || defined(CONFIG_GBM)
@@ -598,7 +598,7 @@ int qemu_egl_init_dpy_mesa(EGLNativeDisplayType dpy, DisplayGLMode mode)
 
 int qemu_egl_init_dpy_angle(DisplayGLMode mode)
 {
-    return qemu_egl_init_dpy_platform(NULL, EGL_PLATFORM_ANGLE_ANGLE, mode);
+    return qemu_egl_init_dpy_platform(EGL_DEFAULT_DISPLAY, EGL_PLATFORM_ANGLE_ANGLE, mode);
 }
 
 #endif
