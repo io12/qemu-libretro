@@ -244,6 +244,8 @@ option('vnc_jpeg', type : 'feature', value : 'auto',
        description: 'JPEG lossy compression for VNC server')
 option('vnc_sasl', type : 'feature', value : 'auto',
        description: 'SASL authentication for VNC server')
+option('libretro', type : 'feature', value : 'auto',
+       description: 'libretro core support')
 option('vte', type : 'feature', value : 'auto',
        description: 'vte support for the gtk UI')
 

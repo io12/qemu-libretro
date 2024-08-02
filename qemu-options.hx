@@ -2464,6 +2464,11 @@ SRST
     OBP.
 ERST
 
+#ifdef CONFIG_LIBRETRO
+DEF("libretro", 0, QEMU_OPTION_libretro ,
+    "-libretro    use libretro UI\n", QEMU_ARCH_ALL)
+#endif
+
 #ifdef CONFIG_VNC
 DEF("vnc", HAS_ARG, QEMU_OPTION_vnc ,
     "-vnc <display>  shorthand for -display vnc=<display>\n", QEMU_ARCH_ALL)

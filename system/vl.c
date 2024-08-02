@@ -3382,6 +3382,11 @@ void qemu_init(int argc, char **argv)
                 display_remote++;
                 break;
 #endif
+#ifdef CONFIG_LIBRETRO
+            case QEMU_OPTION_libretro:
+                puts("TODO: handle -libretro");
+                break;
+#endif
             case QEMU_OPTION_no_reboot:
                 olist = qemu_find_opts("action");
                 qemu_opts_parse_noisily(olist, "reboot=shutdown", false);

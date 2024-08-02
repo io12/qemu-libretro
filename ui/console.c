@@ -1537,6 +1537,9 @@ void qemu_display_register(QemuDisplay *ui)
 bool qemu_display_find_default(DisplayOptions *opts)
 {
     static DisplayType prio[] = {
+#if defined(CONFIG_LIBRETRO)
+        DISPLAY_TYPE_LIBRETRO,
+#endif
 #if defined(CONFIG_GTK)
         DISPLAY_TYPE_GTK,
 #endif

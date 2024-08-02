@@ -1826,6 +1826,11 @@ if get_option('vnc') \
   endif
 endif
 
+libretro = not_found
+if get_option('libretro').allowed()
+  libretro = declare_dependency() # dummy dependency
+endif
+
 pam = not_found
 if not get_option('auth_pam').auto() or have_system
   pam = cc.find_library('pam', has_headers: ['security/pam_appl.h'],
@@ -2354,6 +2359,7 @@ config_host_data.set('CONFIG_PNG', png.found())
 config_host_data.set('CONFIG_VNC', vnc.found())
 config_host_data.set('CONFIG_VNC_JPEG', jpeg.found())
 config_host_data.set('CONFIG_VNC_SASL', sasl.found())
+config_host_data.set('CONFIG_LIBRETRO', libretro.found())
 if virgl.found()
   config_host_data.set('HAVE_VIRGL_D3D_INFO_EXT',
                        cc.has_member('struct virgl_renderer_resource_info_ext', 'd3d_tex2d',
@@ -3474,6 +3480,7 @@ endif
 qom_ss = qom_ss.apply({})
 libqom = static_library('qom', qom_ss.sources() + genh,
                         dependencies: [qom_ss.dependencies()],
+                        pic: true,
                         build_by_default: false)
 qom = declare_dependency(objects: libqom.extract_all_objects(recursive: false),
                          dependencies: qom_ss.dependencies())
@@ -3481,6 +3488,7 @@ qom = declare_dependency(objects: libqom.extract_all_objects(recursive: false),
 event_loop_base = files('event-loop-base.c')
 event_loop_base = static_library('event-loop-base',
                                  sources: event_loop_base + genh,
+                                 pic: true,
                                  build_by_default: false)
 event_loop_base = declare_dependency(objects: event_loop_base.extract_all_objects(recursive: false),
                                      dependencies: [qom])
@@ -3490,6 +3498,7 @@ stub_ss = stub_ss.apply({})
 util_ss.add_all(trace_ss)
 util_ss = util_ss.apply({})
 libqemuutil = static_library('qemuutil',
+                             pic: true,
                              build_by_default: false,
                              sources: util_ss.sources() + stub_ss.sources() + genh,
                              dependencies: [util_ss.dependencies(), libm, threads, glib, socket, malloc])
@@ -3581,7 +3590,7 @@ subdir('accel')
 subdir('plugins')
 subdir('ebpf')
 
-common_user_inc = []
+common_user_inc = [include_directories('libretro-common/include')]
 
 subdir('common-user')
 subdir('bsd-user')
@@ -3733,6 +3742,7 @@ qemu_syms = custom_target('qemu.syms', output: 'qemu.syms',
 authz_ss = authz_ss.apply({})
 libauthz = static_library('authz', authz_ss.sources() + genh,
                           dependencies: [authz_ss.dependencies()],
+                          pic: true,
                           build_by_default: false)
 
 authz = declare_dependency(objects: libauthz.extract_all_objects(recursive: false),
@@ -3741,6 +3751,7 @@ authz = declare_dependency(objects: libauthz.extract_all_objects(recursive: fals
 crypto_ss = crypto_ss.apply({})
 libcrypto = static_library('crypto', crypto_ss.sources() + genh,
                            dependencies: [crypto_ss.dependencies()],
+                           pic: true,
                            build_by_default: false)
 
 crypto = declare_dependency(objects: libcrypto.extract_all_objects(recursive: false),
@@ -3750,12 +3761,14 @@ io_ss = io_ss.apply({})
 libio = static_library('io', io_ss.sources() + genh,
                        dependencies: [io_ss.dependencies()],
                        link_with: libqemuutil,
+                       pic: true,
                        build_by_default: false)
 
 io = declare_dependency(objects: libio.extract_all_objects(recursive: false),
                         dependencies: [io_ss.dependencies(), crypto, qom])
 
 libmigration = static_library('migration', sources: migration_files + genh,
+                              pic: true,
                               build_by_default: false)
 migration = declare_dependency(objects: libmigration.extract_all_objects(recursive: false),
                                dependencies: [qom, io])
@@ -3764,6 +3777,7 @@ system_ss.add(migration)
 block_ss = block_ss.apply({})
 libblock = static_library('block', block_ss.sources() + genh,
                           dependencies: block_ss.dependencies(),
+                          pic: true,
                           build_by_default: false)
 
 block = declare_dependency(objects: libblock.extract_all_objects(recursive: false),
@@ -3772,6 +3786,7 @@ block = declare_dependency(objects: libblock.extract_all_objects(recursive: fals
 blockdev_ss = blockdev_ss.apply({})
 libblockdev = static_library('blockdev', blockdev_ss.sources() + genh,
                              dependencies: blockdev_ss.dependencies(),
+                             pic: true,
                              build_by_default: false)
 
 blockdev = declare_dependency(objects: libblockdev.extract_all_objects(recursive: false),
@@ -3780,6 +3795,7 @@ blockdev = declare_dependency(objects: libblockdev.extract_all_objects(recursive
 qmp_ss = qmp_ss.apply({})
 libqmp = static_library('qmp', qmp_ss.sources() + genh,
                         dependencies: qmp_ss.dependencies(),
+                        pic: true,
                         build_by_default: false)
 
 qmp = declare_dependency(objects: libqmp.extract_all_objects(recursive: false),
@@ -3787,6 +3803,7 @@ qmp = declare_dependency(objects: libqmp.extract_all_objects(recursive: false),
 
 libchardev = static_library('chardev', chardev_ss.sources() + genh,
                             dependencies: chardev_ss.dependencies(),
+                            pic: true,
                             build_by_default: false)
 
 chardev = declare_dependency(objects: libchardev.extract_all_objects(recursive: false),
@@ -3794,6 +3811,7 @@ chardev = declare_dependency(objects: libchardev.extract_all_objects(recursive: 
 
 hwcore_ss = hwcore_ss.apply({})
 libhwcore = static_library('hwcore', sources: hwcore_ss.sources() + genh,
+                           pic: true,
                            build_by_default: false)
 hwcore = declare_dependency(objects: libhwcore.extract_all_objects(recursive: false))
 common_ss.add(hwcore)
@@ -3816,6 +3834,7 @@ common_all = static_library('common',
                             sources: common_ss.all_sources() + genh,
                             include_directories: common_user_inc,
                             implicit_include_directories: false,
+                            pic: true,
                             dependencies: common_ss.all_dependencies())
 
 feature_to_c = find_program('scripts/feature_to_c.py')
@@ -3925,6 +3944,7 @@ foreach target : target_dirs
                  objects: objects,
                  include_directories: target_inc,
                  c_args: c_args,
+                 pic: true,
                  build_by_default: false)
 
   if target.endswith('-softmmu')
@@ -3965,14 +3985,13 @@ foreach target : target_dirs
       exe_name += '-unsigned'
     endif
 
-    emulator = executable(exe_name, exe['sources'],
+    emulator = shared_library(exe_name, exe['sources'],
                install: true,
                c_args: c_args,
                dependencies: arch_deps + exe['dependencies'],
                objects: lib.extract_all_objects(recursive: true),
                link_depends: [block_syms, qemu_syms],
-               link_args: link_args,
-               win_subsystem: exe['win_subsystem'])
+               link_args: link_args)
 
     if host_os == 'darwin'
       icon = 'pc-bios/qemu.rsrc'

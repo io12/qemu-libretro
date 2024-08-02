@@ -462,7 +462,8 @@ static void rcu_init_child(void)
 }
 #endif
 
-static void __attribute__((__constructor__)) rcu_init(void)
+void rcu_init(void);
+void rcu_init(void)
 {
     smp_mb_global_init();
 #ifdef CONFIG_POSIX
