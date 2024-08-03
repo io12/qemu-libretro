@@ -288,7 +288,7 @@ static void *emu_thread_fn(void *arg)
 	g_free(game_dir);
 
 	if (!system_dir) {
-		return;
+		return NULL;
 	}
 	qemu_add_data_dir(g_build_filename(system_dir, "qemu", NULL));
 
