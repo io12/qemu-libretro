@@ -22,4 +22,5 @@ make
 
 Then `libqemu-system-i386.so` will be the core file.
 You can run it with `retroarch -L libqemu-system-i386.so disk.iso` with an ISO file.
+Note that you need to copy `bios-256k.bin`, `efi-e1000.rom`, `kvmvapic.bin`, and `vgabios-stdvga.bin` to `system/qemu` in your RetroArch directory.
 I tested with [KolibriOS](https://builds.kolibrios.org/en_US/latest-iso.7z).
