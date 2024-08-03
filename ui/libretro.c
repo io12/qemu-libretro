@@ -169,7 +169,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
 	memset(info, 0, sizeof(*info));
 	info->need_fullpath = true;
-	info->valid_extensions = "iso";
+	info->valid_extensions = "iso|img";
 	info->library_version = "0.1.0";
 	info->library_name = "qemu";
 }
