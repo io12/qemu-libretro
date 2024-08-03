@@ -15,6 +15,7 @@ int main(int argc, const char *argv[]);
 void rcu_init(void);
 
 static const char *game_path;
+static const char *system_dir;
 static pthread_t emu_thread;
 static DisplaySurface *surface;
 static QKbdState *kbd;
@@ -228,6 +229,7 @@ void retro_set_environment(retro_environment_t cb)
 			       .num_types = 1,
 		       },
 		       { 0 } });
+	cb_env(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir);
 }
 
 static retro_video_refresh_t cb_video_refresh;
@@ -281,9 +283,15 @@ static void start_qemu_with_args(int argc, const char *argv[])
 
 static void *emu_thread_fn(void *arg)
 {
-	const char *game_dir = dirname(strdup(game_path));
+	char *game_dir = g_path_get_dirname(game_path);
 	g_chdir(game_dir);
-	qemu_add_data_dir(strdup(game_dir));
+	g_free(game_dir);
+
+	if (!system_dir) {
+		return;
+	}
+	qemu_add_data_dir(g_build_filename(system_dir, "qemu", NULL));
+
 	if (g_str_has_suffix(game_path, ".qemu_cmd_line")) {
 		char *cmd_line = NULL;
 		bool success =
