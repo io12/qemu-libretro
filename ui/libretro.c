@@ -14,7 +14,7 @@
 int main(int argc, const char *argv[]);
 void rcu_init(void);
 
-static const char *iso_path;
+static const char *game_path;
 static pthread_t emu_thread;
 static DisplaySurface *surface;
 static QKbdState *kbd;
@@ -169,7 +169,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
 	memset(info, 0, sizeof(*info));
 	info->need_fullpath = true;
-	info->valid_extensions = "iso|img";
+	info->valid_extensions = "txt|iso|img|qcow|qcow2";
 	info->library_version = "0.1.0";
 	info->library_name = "qemu";
 }
@@ -273,13 +273,43 @@ void retro_reset(void)
 {
 }
 
+static void start_qemu_with_args(int argc, const char *argv[])
+{
+	rcu_init();
+	main(argc, argv);
+}
+
 static void *emu_thread_fn(void *arg)
 {
-	qemu_add_data_dir(strdup(dirname(strdup(iso_path))));
-	const char *argv[] = { "libretro-qemu", "-libretro", "-cdrom", iso_path,
-			       NULL };
-	rcu_init();
-	main(4, argv);
+	const char *game_dir = dirname(strdup(game_path));
+	g_chdir(game_dir);
+	qemu_add_data_dir(strdup(game_dir));
+	if (g_str_has_suffix(game_path, ".qemu_cmd_line")) {
+		char *cmd_line = NULL;
+		bool success =
+			g_file_get_contents(game_path, &cmd_line, NULL, NULL);
+		if (!success) {
+			return NULL;
+		}
+		int argc;
+		char **argv;
+		success = g_shell_parse_argv(cmd_line, &argc, &argv, NULL);
+		g_free(cmd_line);
+		if (!success) {
+			return NULL;
+		}
+		start_qemu_with_args(argc, (const char **)argv);
+	} else if (g_str_has_suffix(game_path, ".iso")) {
+		start_qemu_with_args(4, (const char *[]){ "libretro-qemu",
+							  "-libretro", "-cdrom",
+							  game_path, NULL });
+	} else if (g_str_has_suffix(game_path, ".img") ||
+		   g_str_has_suffix(game_path, ".qcow") ||
+		   g_str_has_suffix(game_path, ".qcow2")) {
+		start_qemu_with_args(3, (const char *[]){ "libretro-qemu",
+							  "-libretro",
+							  game_path, NULL });
+	}
 	return NULL;
 }
 
@@ -312,7 +342,7 @@ bool retro_load_game(const struct retro_game_info *game)
 		return false;
 	}
 
-	iso_path = game->path;
+	game_path = game->path;
 	pthread_create(&emu_thread, NULL, emu_thread_fn, NULL);
 	return true;
 }

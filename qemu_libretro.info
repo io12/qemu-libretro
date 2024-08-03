@@ -1,7 +1,7 @@
 # Software Information
 display_name = "QEMU"
 authors = "QEMU devs|io12"
-supported_extensions = "iso|img"
+supported_extensions = "qemu_cmd_line|iso|img|qcow|qcow2"
 corename = "QEMU"
 categories = "Emulator"
 license = "GPLv2"
