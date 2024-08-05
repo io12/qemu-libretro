@@ -319,6 +319,9 @@ option('fdt', type: 'combo', value: 'auto',
 option('glib', type: 'combo', value: 'system',
        choices: ['system', 'internal'],
        description: 'How to find the glib library')
+option('zlib', type: 'combo', value: 'system',
+       choices: ['system', 'internal'],
+       description: 'How to find the zlib library')
 
 option('selinux', type: 'feature', value: 'auto',
        description: 'SELinux support in qemu-nbd')

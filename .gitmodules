@@ -46,3 +46,6 @@
 [submodule "libretro-common"]
 	path = libretro-common
 	url = https://github.com/libretro/libretro-common
+[submodule "zlib"]
+	path = zlib
+	url = https://github.com/madler/zlib

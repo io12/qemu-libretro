@@ -1033,7 +1033,35 @@ if not get_option('pixman').auto() or have_system or have_tools
                       method: 'pkg-config')
 endif
 
-zlib = dependency('zlib', required: true)
+zlib_opt = get_option('zlib')
+if zlib_opt == 'system'
+  zlib = dependency('zlib', required: true)
+elif zlib_opt == 'internal'
+  libz = static_library(
+    'z', files([
+      'zlib/adler32.c',
+      'zlib/crc32.c',
+      'zlib/deflate.c',
+      'zlib/infback.c',
+      'zlib/inffast.c',
+      'zlib/inflate.c',
+      'zlib/inftrees.c',
+      'zlib/trees.c',
+      'zlib/zutil.c',
+      'zlib/compress.c',
+      'zlib/uncompr.c',
+      'zlib/gzclose.c',
+      'zlib/gzlib.c',
+      'zlib/gzread.c',
+      'zlib/gzwrite.c',
+    ]),
+    pic: true,
+  )
+  zlib = declare_dependency(
+    link_with: libz,
+    include_directories: include_directories('zlib'),
+  )
+endif
 
 libaio = not_found
 if not get_option('linux_aio').auto() or have_block
