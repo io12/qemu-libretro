@@ -9,14 +9,12 @@ First install the build dependencies.
 I haven't determined what the full list is yet,
 but at least `ninja`, `glib`, `pkg-config`, `flex`, and `bison`.
 
-Then add `pic: true` to the `libfdt = library()` definition in `subprojects/dtc/libfdt/meson.build`.
-
 Then run
 
 ```
 mkdir build
 cd build
-CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-libretro
+CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --disable-fdt --enable-libretro
 make
 ```
 
