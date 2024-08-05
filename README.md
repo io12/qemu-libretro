@@ -16,7 +16,7 @@ Then run
 ```
 mkdir build
 cd build
-../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-libretro
+CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-libretro
 make
 ```
 
