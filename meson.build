@@ -3,7 +3,6 @@ project('qemu', ['c'], meson_version: '>=1.1.0',
                           'b_staticpic=false', 'stdsplit=false', 'optimization=2', 'b_pie=true'],
         version: files('VERSION'))
 
-add_test_setup('quick', exclude_suites: ['slow', 'thorough'], is_default: true)
 add_test_setup('slow', exclude_suites: ['thorough'], env: ['G_TEST_SLOW=1', 'SPEED=slow'])
 add_test_setup('thorough', env: ['G_TEST_SLOW=1', 'SPEED=thorough'])
 
@@ -903,9 +902,12 @@ have_xen_pci_passthrough = get_option('xen_pci_passthrough') \
 # Dependencies #
 ################
 
+glib_req_ver = '>=2.66.0'
+glib = not_found
+glib_opt = get_option('glib')
+if glib_opt == 'system'
 # When bumping glib minimum version, please check also whether to increase
 # the _WIN32_WINNT setting in osdep.h according to the value from glib
-glib_req_ver = '>=2.66.0'
 glib_pc = dependency('glib-2.0', version: glib_req_ver, required: true,
                     method: 'pkg-config')
 glib_cflags = []
@@ -949,6 +951,26 @@ endif
 glib = declare_dependency(dependencies: [glib_pc, gmodule],
                           compile_args: glib_cflags,
                           version: glib_pc.version())
+elif glib_opt == 'internal'
+  assert(not glib.found())
+  add_global_arguments('-fPIC', language: 'c')
+  glib_proj = subproject('glib', required: true, default_options: [
+    'default_library=static',
+    'tests=false',
+    'selinux=disabled',
+    'libmount=disabled',
+    'man-pages=disabled',
+    'dtrace=disabled',
+    'systemtap=disabled',
+    'sysprof=disabled',
+    'nls=disabled',
+    'glib_debug=disabled',
+    'libelf=disabled',
+    'introspection=disabled',
+  ])
+  glib = glib_proj.get_variable('libglib_dep')
+  gmodule = glib_proj.get_variable('libgmodule_dep')
+endif
 
 # Check whether glib has gslice, which we have to avoid for correctness.
 # TODO: remove this check and the corresponding workaround (qtree) when
@@ -956,10 +978,14 @@ glib = declare_dependency(dependencies: [glib_pc, gmodule],
 glib_has_gslice = glib.version().version_compare('<2.75.3')
 
 # override glib dep to include the above refinements
+if glib_opt == 'system'
 meson.override_dependency('glib-2.0', glib)
+endif
 
 # The path to glib.h is added to all compilation commands.
 add_project_dependencies(glib.partial_dependency(compile_args: true, includes: true),
+                         native: false, language: all_languages)
+add_project_dependencies(gmodule.partial_dependency(compile_args: true, includes: true),
                          native: false, language: all_languages)
 
 gio = not_found
