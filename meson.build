@@ -3910,6 +3910,10 @@ foreach target : target_dirs
             '-DCONFIG_DEVICES="@0@-config-devices.h"'.format(target)]
   link_args = emulator_link_args
 
+  if cc.has_header('android/log.h')
+    link_args += ['-llog']
+  endif
+
   target_inc = [include_directories('target' / config_target['TARGET_BASE_ARCH'])]
   if host_os == 'linux'
     target_inc += include_directories('linux-headers', is_system: true)
