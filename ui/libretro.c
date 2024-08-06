@@ -344,11 +344,24 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
 }
 
-#ifdef ANDROID
-#include <log.h>
+#ifdef __ANDROID__
+#include <android/log.h>
 
 static int logger_pipe[2];
 static pthread_t logger_thread;
+
+static void *logger_thread_fn(void *arg)
+{
+	ssize_t rdsz;
+	char buf[128];
+	while ((rdsz = read(logger_pipe[0], buf, sizeof buf - 1)) > 0) {
+		if (buf[rdsz - 1] == '\n')
+			--rdsz;
+		buf[rdsz] = 0; /* add null-terminator */
+		__android_log_write(ANDROID_LOG_INFO, "qemu_libretro", buf);
+	}
+	return NULL;
+}
 
 static void start_logger(void)
 {
@@ -359,20 +372,7 @@ static void start_logger(void)
 	dup2(logger_pipe[1], 2);
 	pthread_create(&logger_thread, NULL, logger_thread_fn, NULL);
 }
-
-static void *logger_thread_fn(void *arg)
-{
-	ssize_t rdsz;
-	char buf[128];
-	while ((rdsz = read(pfd[0], buf, sizeof buf - 1)) > 0) {
-		if (buf[rdsz - 1] == '\n')
-			--rdsz;
-		buf[rdsz] = 0; /* add null-terminator */
-		__android_log_write(ANDROID_LOG_DEBUG, "qemu_libretro", buf);
-	}
-	return NULL;
-}
-#endif /* ANDROID */
+#endif /* __ANDROID__ */
 
 bool retro_load_game(const struct retro_game_info *game)
 {
@@ -381,7 +381,7 @@ bool retro_load_game(const struct retro_game_info *game)
 	}
 
 	game_path = game->path;
-#ifdef ANDROID
+#ifdef __ANDROID__
 	start_logger();
 #endif
 	pthread_create(&emu_thread, NULL, emu_thread_fn, NULL);
@@ -399,7 +399,7 @@ void retro_unload_game(void)
 {
 	pthread_kill(emu_thread, SIGKILL);
 	pthread_join(emu_thread, NULL);
-#ifdef ANDROID
+#ifdef __ANDROID__
 	pthread_kill(logger_thread, SIGKILL);
 	pthread_join(logger_thread, NULL);
 #endif
