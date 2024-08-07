@@ -19,7 +19,9 @@ static const char *system_dir;
 static pthread_t emu_thread;
 static DisplaySurface *surface;
 static QKbdState *kbd;
+static bool changed_resolution = false;
 
+// Input
 #define KEY_EVENT_QUEUE_LEN 32
 struct key_event {
 	bool down;
@@ -30,6 +32,7 @@ static size_t num_pending_keys = 0;
 static int mouse_dx, mouse_dy;
 static bool buttons_down[INPUT_BUTTON__MAX];
 
+// Synchronization
 static bool emu_waiting = false;
 static bool main_waiting = true;
 static pthread_cond_t emu_cv = PTHREAD_COND_INITIALIZER;
@@ -224,11 +227,11 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-	info->geometry.base_width = 720;
-	info->geometry.base_height = 400;
-	info->geometry.max_width = 720;
-	info->geometry.max_height = 400;
-	info->geometry.aspect_ratio = 0.0;
+	memset(info, 0, sizeof(*info));
+	info->geometry.base_width = 1;
+	info->geometry.base_height = 1;
+	info->geometry.max_width = 1;
+	info->geometry.max_height = 1;
 }
 
 static void keyboard_event(bool down, unsigned keycode, uint32_t character,
@@ -471,6 +474,10 @@ static void gfx_update(DisplayChangeListener *dcl, int x, int y, int w, int h)
 
 static void gfx_switch(DisplayChangeListener *dcl, DisplaySurface *new_surface)
 {
+	changed_resolution =
+		!surface ||
+		!(surface_width(surface) == surface_width(new_surface) &&
+		  surface_height(surface) == surface_height(new_surface));
 	surface = new_surface;
 }
 
@@ -543,8 +550,22 @@ void retro_run(void)
 
 	switch_to_emu_thread();
 
-	cb_video_refresh(surface_data(surface), surface_width(surface),
-			 surface_height(surface), surface_stride(surface));
+	int w = surface_width(surface);
+	int h = surface_height(surface);
+
+	if (changed_resolution) {
+		changed_resolution = false;
+		cb_env(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO,
+		       (struct retro_system_av_info[]){
+			       { .geometry = {
+					 .base_width = w,
+					 .base_height = h,
+					 .max_width = w,
+					 .max_height = h,
+				 } } });
+	}
+
+	cb_video_refresh(surface_data(surface), w, h, surface_stride(surface));
 }
 
 static QemuDisplay display = {
