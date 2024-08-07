@@ -20,6 +20,23 @@ static pthread_t emu_thread;
 static DisplaySurface *surface;
 static QKbdState *kbd;
 
+#define KEY_EVENT_QUEUE_LEN 32
+struct key_event {
+	bool down;
+	QKeyCode key;
+};
+static struct key_event key_event_queue[KEY_EVENT_QUEUE_LEN];
+static size_t num_pending_keys = 0;
+static int mouse_dx, mouse_dy;
+static bool buttons_down[INPUT_BUTTON__MAX];
+
+static bool emu_waiting = false;
+static bool main_waiting = true;
+static pthread_cond_t emu_cv = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t main_cv = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t emu_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t main_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static const QKeyCode key_map[RETROK_LAST] = {
 #define KEY(q, r) [RETROK_##r] = Q_KEY_CODE_##q
 	KEY(SHIFT, LSHIFT),
@@ -153,6 +170,36 @@ static const QKeyCode key_map[RETROK_LAST] = {
 #undef KEY
 };
 
+static void switch_to_emu_thread(void)
+{
+	pthread_mutex_lock(&emu_mutex);
+	emu_waiting = false;
+	pthread_mutex_unlock(&emu_mutex);
+
+	pthread_mutex_lock(&main_mutex);
+	pthread_cond_signal(&emu_cv);
+	main_waiting = true;
+	while (main_waiting) {
+		pthread_cond_wait(&main_cv, &main_mutex);
+	}
+	pthread_mutex_unlock(&main_mutex);
+}
+
+static void switch_to_main_thread(void)
+{
+	pthread_mutex_lock(&main_mutex);
+	main_waiting = false;
+	pthread_mutex_unlock(&main_mutex);
+
+	pthread_mutex_lock(&emu_mutex);
+	pthread_cond_signal(&main_cv);
+	emu_waiting = true;
+	while (emu_waiting) {
+		pthread_cond_wait(&emu_cv, &emu_mutex);
+	}
+	pthread_mutex_unlock(&emu_mutex);
+}
+
 void retro_init(void)
 {
 }
@@ -187,23 +234,21 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 static void keyboard_event(bool down, unsigned keycode, uint32_t character,
 			   uint16_t key_modifiers)
 {
-	QKeyCode qc;
-
+	g_assert(num_pending_keys <= KEY_EVENT_QUEUE_LEN);
+	if (num_pending_keys == KEY_EVENT_QUEUE_LEN) {
+		return;
+	}
 	if (keycode >= RETROK_LAST) {
 		return;
 	}
-
-	qc = key_map[keycode];
-
+	QKeyCode qc = key_map[keycode];
 	if (!qc) {
 		return;
 	}
-
-	printf("KEY %d %d %d\n", down, keycode, character);
-
-	bql_lock();
-	qkbd_state_key_event(kbd, qc, down);
-	bql_unlock();
+	key_event_queue[num_pending_keys++] = (struct key_event){
+		.down = down,
+		.key = qc,
+	};
 }
 
 static retro_environment_t cb_env;
@@ -438,6 +483,26 @@ static bool gfx_check_format(DisplayChangeListener *dcl,
 static void refresh(DisplayChangeListener *dcl)
 {
 	graphic_hw_update(dcl->con);
+
+	switch_to_main_thread();
+
+	// Flush keyboard event queue
+	for (size_t i = 0; i < num_pending_keys; i++) {
+		qkbd_state_key_event(kbd, key_event_queue[i].key,
+				     key_event_queue[i].down);
+	}
+	num_pending_keys = 0;
+
+	// Update mouse
+	qemu_input_queue_rel(dcl->con, INPUT_AXIS_X, mouse_dx);
+	qemu_input_queue_rel(dcl->con, INPUT_AXIS_Y, mouse_dy);
+
+	// Update buttons
+	for (size_t i = 0; i < INPUT_BUTTON__MAX; i++) {
+		qemu_input_queue_btn(dcl->con, i, buttons_down[i]);
+	}
+
+	qemu_input_event_sync();
 }
 
 static DisplayChangeListener dcl = {
@@ -461,19 +526,14 @@ void retro_run(void)
 {
 	cb_input_poll();
 
-	bql_lock();
-
-	qemu_input_queue_rel(dcl.con, INPUT_AXIS_X,
-			     cb_input_state(0, RETRO_DEVICE_MOUSE, 0,
-					    RETRO_DEVICE_ID_MOUSE_X));
-	qemu_input_queue_rel(dcl.con, INPUT_AXIS_Y,
-			     cb_input_state(0, RETRO_DEVICE_MOUSE, 0,
-					    RETRO_DEVICE_ID_MOUSE_Y));
+	mouse_dx = cb_input_state(0, RETRO_DEVICE_MOUSE, 0,
+				  RETRO_DEVICE_ID_MOUSE_X);
+	mouse_dy = cb_input_state(0, RETRO_DEVICE_MOUSE, 0,
+				  RETRO_DEVICE_ID_MOUSE_Y);
 
 #define BTN(q, r)                                                              \
-	qemu_input_queue_btn(dcl.con, INPUT_BUTTON_##q,                        \
-			     cb_input_state(0, RETRO_DEVICE_MOUSE, 0,          \
-					    RETRO_DEVICE_ID_MOUSE_##r))
+	buttons_down[INPUT_BUTTON_##q] = cb_input_state(                       \
+		0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_##r)
 	BTN(LEFT, LEFT);
 	BTN(RIGHT, RIGHT);
 	BTN(MIDDLE, MIDDLE);
@@ -481,9 +541,7 @@ void retro_run(void)
 	BTN(WHEEL_DOWN, WHEELDOWN);
 #undef BTN
 
-	qemu_input_event_sync();
-
-	bql_unlock();
+	switch_to_emu_thread();
 
 	cb_video_refresh(surface_data(surface), surface_width(surface),
 			 surface_height(surface), surface_stride(surface));
