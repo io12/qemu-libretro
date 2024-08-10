@@ -2003,6 +2003,9 @@ void audio_create_pdos(Audiodev *dev)
         break
 
         CASE(NONE, none, );
+#ifdef CONFIG_AUDIO_LIBRETRO
+        CASE(LIBRETRO, libretro, );
+#endif
 #ifdef CONFIG_AUDIO_ALSA
         CASE(ALSA, alsa, Alsa);
 #endif

@@ -10,6 +10,13 @@
 #include "qemu/main-loop.h"
 #include "ui/console.h"
 #include "ui/kbd-state.h"
+#include "audio/audio.h"
+#include "audio/audio_int.h"
+
+#define QEMU_CMD                                                               \
+	"libretro-qemu", "-libretro", "-audiodev", "libretro,id=snd0",         \
+		"-machine", "pcspk-audiodev=snd0", "-device",                  \
+		"AC97,audiodev=snd0"
 
 int main(int argc, const char *argv[]);
 void rcu_init(void);
@@ -19,7 +26,9 @@ static const char *system_dir;
 static pthread_t emu_thread;
 static DisplaySurface *surface;
 static QKbdState *kbd;
-static bool changed_resolution = false;
+
+static HWVoiceOut *hw_voice_out = NULL;
+static pthread_mutex_t hw_voice_out_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Input
 #define KEY_EVENT_QUEUE_LEN 32
@@ -225,13 +234,25 @@ void retro_get_system_info(struct retro_system_info *info)
 	info->library_name = "qemu";
 }
 
+static pthread_mutex_t av_info_lock = PTHREAD_MUTEX_INITIALIZER;
+static bool changed_av_info = false;
+static struct retro_system_av_info av_info = {
+	.geometry = {
+		.base_width = 1,
+		.base_height = 1,
+		.max_width = 1,
+		.max_height = 1,
+		.aspect_ratio = 0.0,
+	},
+	.timing = {
+		.fps = 0.0,
+		.sample_rate = 0.0,
+	},
+};
+
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-	memset(info, 0, sizeof(*info));
-	info->geometry.base_width = 1;
-	info->geometry.base_height = 1;
-	info->geometry.max_width = 1;
-	info->geometry.max_height = 1;
+	*info = av_info;
 }
 
 static void keyboard_event(bool down, unsigned keycode, uint32_t character,
@@ -254,39 +275,6 @@ static void keyboard_event(bool down, unsigned keycode, uint32_t character,
 	};
 }
 
-static retro_environment_t cb_env;
-
-void retro_set_environment(retro_environment_t cb)
-{
-	cb_env = cb;
-
-	cb_env(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
-	       (enum retro_pixel_format[]){ RETRO_PIXEL_FORMAT_XRGB8888 });
-	cb_env(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK,
-	       (struct retro_keyboard_callback[]){ {
-		       keyboard_event,
-	       } });
-	cb_env(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO,
-	       (struct retro_controller_info[]){
-		       {
-			       .types =
-				       (struct retro_controller_description[]){ {
-					       .desc = "Keyboard",
-					       .id = RETRO_DEVICE_KEYBOARD,
-				       } },
-			       .num_types = 1,
-		       },
-		       { 0 } });
-	cb_env(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir);
-}
-
-static retro_video_refresh_t cb_video_refresh;
-
-void retro_set_video_refresh(retro_video_refresh_t cb)
-{
-	cb_video_refresh = cb;
-}
-
 static retro_audio_sample_t cb_audio_sample;
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
@@ -299,6 +287,69 @@ static retro_audio_sample_batch_t cb_audio_sample_batch;
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
 {
 	cb_audio_sample_batch = cb;
+}
+
+static void audio_callback(void)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+
+	if (!hw_voice_out) {
+		goto out;
+	}
+
+	while (hw_voice_out->pending_emul) {
+		size_t start = audio_ring_posb(hw_voice_out->pos_emul,
+					       hw_voice_out->pending_emul,
+					       hw_voice_out->size_emul);
+		g_assert(start < hw_voice_out->size_emul);
+		size_t write_len = MIN(hw_voice_out->pending_emul,
+				       hw_voice_out->size_emul - start);
+
+		size_t written = cb_audio_sample_batch(
+			hw_voice_out->buf_emul + start, write_len / 4);
+		g_assert(hw_voice_out->pending_emul >= written * 4);
+		hw_voice_out->pending_emul -= written * 4;
+		g_assert(write_len == written * 4);
+	}
+
+out:
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+}
+
+static retro_environment_t cb_env;
+
+void retro_set_environment(retro_environment_t cb)
+{
+	cb_env = cb;
+
+	cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT,
+	   &(enum retro_pixel_format){ RETRO_PIXEL_FORMAT_XRGB8888 });
+	cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK,
+	   &(struct retro_keyboard_callback){ keyboard_event });
+	cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO,
+	   (struct retro_controller_info[]){
+		   {
+			   .types = (struct retro_controller_description[]){ {
+				   .desc = "Keyboard",
+				   .id = RETRO_DEVICE_KEYBOARD,
+			   } },
+			   .num_types = 1,
+		   },
+		   { 0 } });
+	cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir);
+
+	cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK,
+	   &(struct retro_audio_callback){
+		   .callback = audio_callback,
+		   .set_state = NULL,
+	   });
+}
+
+static retro_video_refresh_t cb_video_refresh;
+
+void retro_set_video_refresh(retro_video_refresh_t cb)
+{
+	cb_video_refresh = cb;
 }
 
 static retro_input_poll_t cb_input_poll;
@@ -323,8 +374,13 @@ void retro_reset(void)
 {
 }
 
-static void start_qemu_with_args(int argc, const char *argv[])
+static void start_qemu_with_args(const char *argv[])
 {
+	int argc = 0;
+	while (argv[argc]) {
+		argc++;
+	}
+
 	rcu_init();
 	main(argc, argv);
 }
@@ -347,24 +403,19 @@ static void *emu_thread_fn(void *arg)
 		if (!success) {
 			return NULL;
 		}
-		int argc;
 		char **argv;
-		success = g_shell_parse_argv(cmd_line, &argc, &argv, NULL);
+		success = g_shell_parse_argv(cmd_line, NULL, &argv, NULL);
 		g_free(cmd_line);
 		if (!success) {
 			return NULL;
 		}
-		start_qemu_with_args(argc, (const char **)argv);
+		start_qemu_with_args((const char **)argv);
 	} else if (g_str_has_suffix(game_path, ".iso")) {
-		start_qemu_with_args(4, (const char *[]){ "libretro-qemu",
-							  "-libretro", "-cdrom",
-							  game_path, NULL });
-	} else if (g_str_has_suffix(game_path, ".img") ||
-		   g_str_has_suffix(game_path, ".qcow") ||
-		   g_str_has_suffix(game_path, ".qcow2")) {
-		start_qemu_with_args(3, (const char *[]){ "libretro-qemu",
-							  "-libretro",
-							  game_path, NULL });
+		start_qemu_with_args((const char *[]){ QEMU_CMD, "-cdrom",
+						       game_path, NULL });
+	} else {
+		start_qemu_with_args(
+			(const char *[]){ QEMU_CMD, game_path, NULL });
 	}
 	return NULL;
 }
@@ -474,10 +525,17 @@ static void gfx_update(DisplayChangeListener *dcl, int x, int y, int w, int h)
 
 static void gfx_switch(DisplayChangeListener *dcl, DisplaySurface *new_surface)
 {
-	changed_resolution =
-		!surface ||
-		!(surface_width(surface) == surface_width(new_surface) &&
-		  surface_height(surface) == surface_height(new_surface));
+	int w = surface_width(new_surface);
+	int h = surface_height(new_surface);
+	bool changed_resolution = !surface || !(surface_width(surface) == w &&
+						surface_height(surface) == h);
+	if (changed_resolution) {
+		pthread_mutex_lock(&av_info_lock);
+		av_info.geometry.base_width = av_info.geometry.max_width = w;
+		av_info.geometry.base_height = av_info.geometry.max_height = h;
+		changed_av_info = true;
+		pthread_mutex_unlock(&av_info_lock);
+	}
 	surface = new_surface;
 }
 
@@ -553,19 +611,90 @@ void retro_run(void)
 	int w = surface_width(surface);
 	int h = surface_height(surface);
 
-	if (changed_resolution) {
-		changed_resolution = false;
-		cb_env(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO,
-		       (struct retro_system_av_info[]){
-			       { .geometry = {
-					 .base_width = w,
-					 .base_height = h,
-					 .max_width = w,
-					 .max_height = h,
-				 } } });
+	pthread_mutex_lock(&av_info_lock);
+	if (changed_av_info) {
+		changed_av_info = false;
+		cb_env(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
 	}
+	pthread_mutex_unlock(&av_info_lock);
 
 	cb_video_refresh(surface_data(surface), w, h, surface_stride(surface));
+}
+
+static void *audio_init(Audiodev *dev, Error **errp)
+{
+	return dev;
+}
+
+static void audio_fini(void *opaque)
+{
+}
+
+static int audio_init_out(HWVoiceOut *hw, struct audsettings *as,
+			  void *drv_opaque)
+{
+	g_assert(as->fmt == AUDIO_FORMAT_S16);
+	g_assert(as->nchannels == 2);
+
+	pthread_mutex_lock(&av_info_lock);
+	av_info.timing.sample_rate = as->freq;
+	changed_av_info = true;
+	pthread_mutex_unlock(&av_info_lock);
+
+	audio_pcm_init_info(&hw->info, as);
+
+	hw->samples = 1024;
+
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	g_assert(!hw_voice_out);
+	hw_voice_out = hw;
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+
+	return 0;
+}
+
+static void audio_fini_out(HWVoiceOut *hw)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	g_assert(hw_voice_out == hw);
+	hw_voice_out = NULL;
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+}
+
+static void audio_enable_out(HWVoiceOut *hw, bool enable)
+{
+}
+
+static size_t audio_write(HWVoiceOut *hw, void *buf, size_t size)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	size_t ret = audio_generic_write(hw, buf, size);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
+}
+
+static size_t audio_buffer_get_free(HWVoiceOut *hw)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	size_t ret = audio_generic_buffer_get_free(hw);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
+}
+
+static void *audio_get_buffer_out(HWVoiceOut *hw, size_t *size)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	void *ret = audio_generic_get_buffer_out(hw, size);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
+}
+
+static size_t audio_put_buffer_out(HWVoiceOut *hw, void *buf, size_t size)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	size_t ret = audio_generic_put_buffer_out(hw, buf, size);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
 }
 
 static QemuDisplay display = {
@@ -573,9 +702,32 @@ static QemuDisplay display = {
 	.init = display_init,
 };
 
+static struct audio_pcm_ops pcm_ops = {
+	.init_out = audio_init_out,
+	.fini_out = audio_fini_out,
+	.enable_out = audio_enable_out,
+	.write = audio_write,
+	.buffer_get_free = audio_buffer_get_free,
+	.get_buffer_out = audio_get_buffer_out,
+	.put_buffer_out = audio_put_buffer_out,
+};
+
+static struct audio_driver libretro_audio_driver = {
+	.name = "libretro",
+	.descr = "libretro https://www.libretro.com/",
+	.init = audio_init,
+	.fini = audio_fini,
+	.pcm_ops = &pcm_ops,
+	.max_voices_out = 1,
+	.max_voices_in = 0,
+	.voice_size_out = sizeof(HWVoiceOut),
+	.voice_size_in = 0,
+};
+
 static void register_libretro(void)
 {
 	qemu_display_register(&display);
+	audio_driver_register(&libretro_audio_driver);
 }
 
 type_init(register_libretro);

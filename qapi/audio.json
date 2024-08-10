@@ -451,6 +451,7 @@
 ##
 { 'enum': 'AudiodevDriver',
   'data': [ 'none',
+            { 'name': 'libretro', 'if': 'CONFIG_AUDIO_LIBRETRO' },
             { 'name': 'alsa', 'if': 'CONFIG_AUDIO_ALSA' },
             { 'name': 'coreaudio', 'if': 'CONFIG_AUDIO_COREAUDIO' },
             { 'name': 'dbus', 'if': 'CONFIG_DBUS_DISPLAY' },
@@ -486,6 +487,8 @@
   'discriminator': 'driver',
   'data': {
     'none':      'AudiodevGenericOptions',
+    'libretro':  { 'type': 'AudiodevGenericOptions',
+                   'if': 'CONFIG_AUDIO_LIBRETRO' },
     'alsa':      { 'type': 'AudiodevAlsaOptions',
                    'if': 'CONFIG_AUDIO_ALSA' },
     'coreaudio': { 'type': 'AudiodevCoreaudioOptions',
