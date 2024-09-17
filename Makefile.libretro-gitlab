@@ -16,7 +16,7 @@ all:
 		&& pip install tomli \
 		&& PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
-		&& EXTRA_CFLAGS="--cross-prefix=arm-linux-androideabi- --cc=armv7a-linux-androideabi30-clang --host-cc=gcc --cxx=armv7a-linux-androideabi30-clang++"
+		&& EXTRA_CFLAGS="--cross-prefix=arm-linux-androideabi- --cc=armv7a-linux-androideabi30-clang --host-cc=gcc --cxx=armv7a-linux-androideabi30-clang++" \
 	elif [ $(platform) = android-arm64 ]; then \
 		apt-get update \
 		&& apt-get -y upgrade \
@@ -24,7 +24,7 @@ all:
 		&& pip install tomli \
 		&& PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
-		&& EXTRA_CFLAGS="--cross-prefix=aarch64-linux-android- --cc=aarch64-linux-android30-clang --host-cc=gcc --cxx=aarch64-linux-android30-clang++"
+		&& EXTRA_CFLAGS="--cross-prefix=aarch64-linux-android- --cc=aarch64-linux-android30-clang --host-cc=gcc --cxx=aarch64-linux-android30-clang++" \
 	elif [ $(platform) = android-x86 ]; then \
 		apt-get update \
 		&& apt-get -y upgrade \
@@ -32,7 +32,7 @@ all:
 		&& pip install tomli \
 		&& PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
-		&& EXTRA_CFLAGS="--cross-prefix=i686-linux-android- --cc=i686-linux-android30-clang --host-cc=gcc --cxx=i686-linux-android30-clang++"
+		&& EXTRA_CFLAGS="--cross-prefix=i686-linux-android- --cc=i686-linux-android30-clang --host-cc=gcc --cxx=i686-linux-android30-clang++" \
 	elif [ $(platform) = android-x86_64 ]; then \
 		apt-get update \
 		&& apt-get -y upgrade \
@@ -40,7 +40,7 @@ all:
 		&& pip install tomli \
 		&& PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
-		&& EXTRA_CFLAGS="--cross-prefix=x86_64-linux-android- --cc=x86_64-linux-android30-clang --host-cc=gcc --cxx=x86_64-linux-android30-clang++"
+		&& EXTRA_CFLAGS="--cross-prefix=x86_64-linux-android- --cc=x86_64-linux-android30-clang --host-cc=gcc --cxx=x86_64-linux-android30-clang++" \
 	fi \
 		&& mkdir build \
 		&& cd build \
