@@ -41,7 +41,7 @@ all:
 		&& PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
 		&& EXTRA_CFLAGS="--cross-prefix=x86_64-linux-android- --cc=x86_64-linux-android30-clang --host-cc=gcc --cxx=x86_64-linux-android30-clang++"
-	endif \
+	fi \
 		&& mkdir build \
 		&& cd build \
 		&& PATH=$PATH:$(PATH) CFLAGS=-Wno-error ../configure \
