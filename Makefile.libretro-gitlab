@@ -1,69 +1,48 @@
 .PHONY: all
 
 all:
-	ifeq ($(platform),unix)
-		apt-get update
-		apt-get -y upgrade
-		apt-get -y install python3.8 python3.8-venv
-		python3.8 -m pip install distlib tomli meson
-		PATH =
-		CORE_SUFFIX = libretro
-		EXTRA_CFLAGS =
-	endif
-	ifeq ($(platform),android-arm)
-		apt-get update
-		apt-get -y upgrade
-		apt-get -y install ninja-build
-		pip install tomli
-		PATH = $(ANDROID_NDK_LLVM)/bin
-		CORE_SUFFIX = libretro_android
-		EXTRA_CFLAGS = \
-			--cross-prefix=arm-linux-androideabi- \
-			--cc=armv7a-linux-androideabi30-clang \
-			--host-cc=gcc \
-			--cxx=armv7a-linux-androideabi30-clang++
-	endif
-	ifeq ($(platform),android-arm64)
-		apt-get update
-		apt-get -y upgrade
-		apt-get -y install ninja-build
-		pip install tomli
-		PATH = $(ANDROID_NDK_LLVM)/bin
-		CORE_SUFFIX = libretro_android
-		EXTRA_CFLAGS = \
-			--cross-prefix=aarch64-linux-android- \
-			--cc=aarch64-linux-android30-clang \
-			--host-cc=gcc \
-			--cxx=aarch64-linux-android30-clang++
-	endif
-	ifeq ($(platform),android-x86)
-		apt-get update
-		apt-get -y upgrade
-		apt-get -y install ninja-build
-		pip install tomli
-		PATH = $(ANDROID_NDK_LLVM)/bin
-		CORE_SUFFIX = libretro_android
-		EXTRA_CFLAGS = \
-			--cross-prefix=i686-linux-android- \
-			--cc=i686-linux-android30-clang \
-			--host-cc=gcc \
-			--cxx=i686-linux-android30-clang++
-	endif
-	ifeq ($(platform),android-x86_64)
-		apt-get update
-		apt-get -y upgrade
-		apt-get -y install ninja-build
-		pip install tomli
-		PATH = $(ANDROID_NDK_LLVM)/bin
-		CORE_SUFFIX = libretro_android
-		EXTRA_CFLAGS = \
-			--cross-prefix=x86_64-linux-android- \
-			--cc=x86_64-linux-android30-clang \
-			--host-cc=gcc \
-			--cxx=x86_64-linux-android30-clang++
-	endif
-
-	mkdir build \
+	if [ $(platform) = unix ]; then \
+		apt-get update \
+		&& apt-get -y upgrade \
+		&& apt-get -y install python3.8 python3.8-venv \
+		&& python3.8 -m pip install distlib tomli meson \
+		&& PATH= \
+		&& CORE_SUFFIX=libretro \
+		&& EXTRA_CFLAGS= \
+	elif [ $(platform) = android-arm ]; then \
+		apt-get update \
+		&& apt-get -y upgrade \
+		&& apt-get -y install ninja-build \
+		&& pip install tomli \
+		&& PATH=$(ANDROID_NDK_LLVM)/bin \
+		&& CORE_SUFFIX=libretro_android \
+		&& EXTRA_CFLAGS="--cross-prefix=arm-linux-androideabi- --cc=armv7a-linux-androideabi30-clang --host-cc=gcc --cxx=armv7a-linux-androideabi30-clang++"
+	elif [ $(platform) = android-arm64 ]; then \
+		apt-get update \
+		&& apt-get -y upgrade \
+		&& apt-get -y install ninja-build \
+		&& pip install tomli \
+		&& PATH=$(ANDROID_NDK_LLVM)/bin \
+		&& CORE_SUFFIX=libretro_android \
+		&& EXTRA_CFLAGS="--cross-prefix=aarch64-linux-android- --cc=aarch64-linux-android30-clang --host-cc=gcc --cxx=aarch64-linux-android30-clang++"
+	elif [ $(platform) = android-x86 ]; then \
+		apt-get update \
+		&& apt-get -y upgrade \
+		&& apt-get -y install ninja-build \
+		&& pip install tomli \
+		&& PATH=$(ANDROID_NDK_LLVM)/bin \
+		&& CORE_SUFFIX=libretro_android \
+		&& EXTRA_CFLAGS="--cross-prefix=i686-linux-android- --cc=i686-linux-android30-clang --host-cc=gcc --cxx=i686-linux-android30-clang++"
+	elif [ $(platform) = android-x86_64 ]; then \
+		apt-get update \
+		&& apt-get -y upgrade \
+		&& apt-get -y install ninja-build \
+		&& pip install tomli \
+		&& PATH=$(ANDROID_NDK_LLVM)/bin \
+		&& CORE_SUFFIX=libretro_android \
+		&& EXTRA_CFLAGS="--cross-prefix=x86_64-linux-android- --cc=x86_64-linux-android30-clang --host-cc=gcc --cxx=x86_64-linux-android30-clang++"
+	endif \
+		&& mkdir build \
 		&& cd build \
 		&& PATH=$PATH:$(PATH) CFLAGS=-Wno-error ../configure \
 			--python=$(command -v python3.8) \
