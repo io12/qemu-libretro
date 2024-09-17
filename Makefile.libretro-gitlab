@@ -8,7 +8,7 @@ all:
 		&& python3.8 -m pip install distlib tomli meson \
 		&& EXTRA_PATH= \
 		&& CORE_SUFFIX=libretro \
-		&& EXTRA_CONFIGURE_ARGS=; \
+		&& EXTRA_CONFIGURE_ARGS="--python=$(command -v python3.8)"; \
 	elif [ $(platform) = android-arm ]; then \
 		apt-get update \
 		&& apt-get -y upgrade \
@@ -45,7 +45,6 @@ all:
 		&& mkdir build \
 		&& cd build \
 		&& PATH=$EXTRA_PATH:$PATH CFLAGS=-Wno-error ../configure \
-			--python=$(command -v python3.8) \
 			--without-default-features \
 			--target-list=i386-softmmu \
 			--glib=internal \
