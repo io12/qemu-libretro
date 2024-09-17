@@ -4,6 +4,7 @@ all:
 	if [ $(platform) = unix ]; then \
 		apt-get update \
 		&& apt-get -y upgrade \
+		&& pip install tomli \
 		&& EXTRA_PATH= \
 		&& CORE_SUFFIX=libretro \
 		&& EXTRA_CONFIGURE_ARGS=; \
