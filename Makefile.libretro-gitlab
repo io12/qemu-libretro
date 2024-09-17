@@ -56,6 +56,6 @@ all:
 			--enable-libretro \
 			--audio-drv-list=libretro \
 			--disable-sdl \
-			${EXTRA_CONFIGURE_ARGS}
+			${EXTRA_CONFIGURE_ARGS} \
 		&& make -j$(NUMPROC) \
 		&& cp libqemu-system-i386.so ../qemu_${CORE_SUFFIX}.so
