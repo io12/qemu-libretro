@@ -9,6 +9,7 @@
   variables:
     CORENAME: qemu
     MAKEFILE: Makefile.libretro-gitlab
+    GIT_SUBMODULE_STRATEGY: recursive
 
 # Inclusion templates, required for the build to work
 include:
