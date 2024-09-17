@@ -43,7 +43,7 @@ all:
 	fi \
 		&& update-ca-certificates --fresh \
 		&& export SSL_CERT_DIR=/etc/ssl/certs \
-		&& export PATH=${EXTRA_PATH}:${PATH} \
+		&& export PATH=$$EXTRA_PATH:$$PATH \
 		&& mkdir build \
 		&& cd build \
 		&& CFLAGS=-Wno-error ../configure \
@@ -56,6 +56,6 @@ all:
 			--enable-libretro \
 			--audio-drv-list=libretro \
 			--disable-sdl \
-			${EXTRA_CONFIGURE_ARGS} \
+			$$EXTRA_CONFIGURE_ARGS \
 		&& make -j$(NUMPROC) \
-		&& cp libqemu-system-i386.so ../qemu_${CORE_SUFFIX}.so
+		&& cp libqemu-system-i386.so ../qemu_$$CORE_SUFFIX.so
