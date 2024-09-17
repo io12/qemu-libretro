@@ -13,29 +13,29 @@
 # Inclusion templates, required for the build to work
 include:
   ################################## DESKTOPS ################################
-  # Windows 64-bit
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/windows-x64-mingw.yml'
+  # # Windows 64-bit
+  # - project: 'libretro-infrastructure/ci-templates'
+  #   file: '/windows-x64-mingw.yml'
 
-  # Windows 32-bit
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/windows-i686-mingw.yml'
+  # # Windows 32-bit
+  # - project: 'libretro-infrastructure/ci-templates'
+  #   file: '/windows-i686-mingw.yml'
 
-  # Windows msvc10 64-bit
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/windows-x64-msvc10-msys2.yml'
+  # # Windows msvc10 64-bit
+  # - project: 'libretro-infrastructure/ci-templates'
+  #   file: '/windows-x64-msvc10-msys2.yml'
 
-  # Windows msvc10 32-bit
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/windows-i686-msvc10-msys2.yml'
+  # # Windows msvc10 32-bit
+  # - project: 'libretro-infrastructure/ci-templates'
+  #   file: '/windows-i686-msvc10-msys2.yml'
 
-  # Windows msvc05 32-bit
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/windows-i686-msvc05-msys2.yml'
+  # # Windows msvc05 32-bit
+  # - project: 'libretro-infrastructure/ci-templates'
+  #   file: '/windows-i686-msvc05-msys2.yml'
 
-  # DJGPP
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/djgpp-static.yml'
+  # # DJGPP
+  # - project: 'libretro-infrastructure/ci-templates'
+  #   file: '/djgpp-static.yml'
 
   # Linux 64-bit
   - project: 'libretro-infrastructure/ci-templates'
