@@ -41,6 +41,8 @@ all:
 		&& CORE_SUFFIX=libretro_android \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=x86_64-linux-android- --cc=x86_64-linux-android30-clang --host-cc=gcc --cxx=x86_64-linux-android30-clang++"; \
 	fi \
+		&& update-ca-certificates --fresh \
+		&& export SSL_CERT_DIR=/etc/ssl/certs \
 		&& export PATH=${EXTRA_PATH}:${PATH} \
 		&& mkdir build \
 		&& cd build \
