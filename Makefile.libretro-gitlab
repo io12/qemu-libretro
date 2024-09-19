@@ -7,6 +7,7 @@ all:
 		&& pip install tomli \
 		&& EXTRA_PATH= \
 		&& CORE_SUFFIX=libretro \
+		&& LIB_EXT=so \
 		&& EXTRA_CONFIGURE_ARGS=; \
 	elif [ $(platform) = android-arm ]; then \
 		apt-get update \
@@ -15,6 +16,7 @@ all:
 		&& pip install tomli \
 		&& EXTRA_PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
+		&& LIB_EXT=so \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=arm-linux-androideabi- --cc=armv7a-linux-androideabi30-clang --host-cc=gcc --cxx=armv7a-linux-androideabi30-clang++"; \
 	elif [ $(platform) = android-arm64 ]; then \
 		apt-get update \
@@ -23,6 +25,7 @@ all:
 		&& pip install tomli \
 		&& EXTRA_PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
+		&& LIB_EXT=so \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=aarch64-linux-android- --cc=aarch64-linux-android30-clang --host-cc=gcc --cxx=aarch64-linux-android30-clang++"; \
 	elif [ $(platform) = android-x86 ]; then \
 		apt-get update \
@@ -31,6 +34,7 @@ all:
 		&& pip install tomli \
 		&& EXTRA_PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
+		&& LIB_EXT=so \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=i686-linux-android- --cc=i686-linux-android30-clang --host-cc=gcc --cxx=i686-linux-android30-clang++"; \
 	elif [ $(platform) = android-x86_64 ]; then \
 		apt-get update \
@@ -39,7 +43,17 @@ all:
 		&& pip install tomli \
 		&& EXTRA_PATH=$(ANDROID_NDK_LLVM)/bin \
 		&& CORE_SUFFIX=libretro_android \
+		&& LIB_EXT=so \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=x86_64-linux-android- --cc=x86_64-linux-android30-clang --host-cc=gcc --cxx=x86_64-linux-android30-clang++"; \
+	elif [ $(platform) = win64 ]; then \
+		apt-get update \
+		&& apt-get -y upgrade \
+		&& apt-get -y install python3.8-venv \
+		&& python3.8 -m pip install distlib tomli meson \
+		&& EXTRA_PATH= \
+		&& CORE_SUFFIX=libretro \
+		&& LIB_EXT=dll \
+		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=x86_64-w64-mingw32.static-"; \
 	fi \
 		&& update-ca-certificates --fresh \
 		&& export SSL_CERT_DIR=/etc/ssl/certs \
@@ -58,4 +72,4 @@ all:
 			--disable-sdl \
 			$$EXTRA_CONFIGURE_ARGS \
 		&& make -j$(NUMPROC) \
-		&& cp libqemu-system-i386.so ../qemu_$$CORE_SUFFIX.so
+		&& cp libqemu-system-i386.$$LIB_EXT ../qemu_$$CORE_SUFFIX.$$LIB_EXT

@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <libgen.h>
+#include <pthread.h>
+#include <glib/gstdio.h>
 
 #include "qemu/datadir.h"
 #include "qemu/osdep.h"
@@ -496,10 +498,10 @@ bool retro_load_game_special(unsigned game_type,
 
 void retro_unload_game(void)
 {
-	pthread_kill(emu_thread, SIGKILL);
+	pthread_kill(emu_thread, SIGTERM);
 	pthread_join(emu_thread, NULL);
 #ifdef __ANDROID__
-	pthread_kill(logger_thread, SIGKILL);
+	pthread_kill(logger_thread, SIGTERM);
 	pthread_join(logger_thread, NULL);
 #endif
 }

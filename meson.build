@@ -4194,7 +4194,7 @@ if gtk.found()
   subdir('po')
 endif
 
-if host_machine.system() == 'windows'
+if host_machine.system() == 'windows' and not libretro.found()
   nsis_cmd = [
     find_program('scripts/nsis.py'),
     '@OUTPUT@',
