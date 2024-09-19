@@ -54,6 +54,15 @@ all:
 		&& CORE_SUFFIX=libretro \
 		&& LIB_EXT=dll \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=x86_64-w64-mingw32.static-"; \
+	elif [ $(platform) = win32 ]; then \
+		apt-get update \
+		&& apt-get -y upgrade \
+		&& apt-get -y install python3.8-venv \
+		&& python3.8 -m pip install distlib tomli meson \
+		&& EXTRA_PATH= \
+		&& CORE_SUFFIX=libretro \
+		&& LIB_EXT=dll \
+		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=i686-w64-mingw32.static-"; \
 	fi \
 		&& update-ca-certificates --fresh \
 		&& export SSL_CERT_DIR=/etc/ssl/certs \
