@@ -83,7 +83,7 @@ all:
 			--zlib=internal \
 			--disable-pie \
 			--disable-fdt \
-			--enable-modules \
+			--disable-modules \
 			--disable-plugins \
 			--enable-libretro \
 			--audio-drv-list=libretro \
