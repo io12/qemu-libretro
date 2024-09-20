@@ -63,8 +63,15 @@ all:
 		&& CORE_SUFFIX=libretro \
 		&& LIB_EXT=dll \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=i686-w64-mingw32.static-"; \
+	elif [ $(platform) = osx ]; then \
+		python3 -m pip install tomli \
+		&& brew install ninja \
+		&& EXTRA_PATH= \
+		&& CORE_SUFFIX=libretro \
+		&& LIB_EXT=dylib \
+		&& EXTRA_CONFIGURE_ARGS=; \
 	fi \
-		&& update-ca-certificates --fresh \
+		&& (if [ $$(uname -s) = Linux ]; then update-ca-certificates --fresh; fi) \
 		&& export SSL_CERT_DIR=/etc/ssl/certs \
 		&& export PATH=$$EXTRA_PATH:$$PATH \
 		&& mkdir build \
