@@ -64,8 +64,8 @@ all:
 		&& LIB_EXT=dll \
 		&& EXTRA_CONFIGURE_ARGS="--cross-prefix=i686-w64-mingw32.static-"; \
 	elif [ $(platform) = osx ]; then \
-		python3 -m pip install --user tomli \
-		&& EXTRA_PATH= \
+		python3 -m pip install --user tomli ninja \
+		&& EXTRA_PATH=$$(echo ~/Library/Python/3.*/bin) \
 		&& CORE_SUFFIX=libretro \
 		&& LIB_EXT=dylib \
 		&& EXTRA_CONFIGURE_ARGS=; \
