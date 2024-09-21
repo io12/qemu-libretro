@@ -79,7 +79,7 @@ case "$platform" in
         EXTRA_PATH=$(echo ~/Library/Python/3.*/bin)
         CORE_SUFFIX=libretro
         LIB_EXT=dylib
-        if [ "$CROSS_COMPILE" = "1" ]; then
+        if [ "${CROSS_COMPILE:-}" = "1" ]; then
             CLANG_CMD="clang -target $LIBRETRO_APPLE_PLATFORM -isysroot $LIBRETRO_APPLE_ISYSROOT"
             EXTRA_CONFIGURE_ARGS=(
                 "--cross-prefix="
@@ -120,7 +120,7 @@ CFLAGS=-Wno-error ../configure \
     --enable-libretro \
     --audio-drv-list=libretro \
     --disable-sdl \
-    "${EXTRA_CONFIGURE_ARGS[@]}"
+    ${EXTRA_CONFIGURE_ARGS[@]+"${EXTRA_CONFIGURE_ARGS[@]}"}
 
 make -j$NUMPROC
 
