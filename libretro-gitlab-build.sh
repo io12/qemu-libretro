@@ -11,6 +11,12 @@ if command -v apt-get &> /dev/null; then
     apt-get -y upgrade
 fi
 
+if [ "$(uname -s)" = "Darwin" ]; then
+    python3 -m pip install --user tomli ninja
+    EXTRA_PATH=$(echo ~/Library/Python/3.*/bin)
+    LIB_EXT=dylib
+fi
+
 case "$platform" in
     unix)
         pip install tomli
@@ -75,10 +81,7 @@ case "$platform" in
         esac
         ;;
     osx)
-        python3 -m pip install --user tomli ninja
-        EXTRA_PATH=$(echo ~/Library/Python/3.*/bin)
         CORE_SUFFIX=libretro
-        LIB_EXT=dylib
         if [ "${CROSS_COMPILE:-}" = "1" ]; then
             CLANG_CMD="clang -target $LIBRETRO_APPLE_PLATFORM -isysroot $LIBRETRO_APPLE_ISYSROOT"
             EXTRA_CONFIGURE_ARGS=(
@@ -88,6 +91,36 @@ case "$platform" in
                 "--objcc=$CLANG_CMD"
             )
         fi
+        ;;
+    ios*|tvos*)
+        case "$platform" in
+            ios-arm64)
+                IOSSDK="$(xcodebuild -version -sdk iphoneos Path)"
+                ARCH=arm64
+                CORE_SUFFIX=libretro_ios
+                ;;
+            ios9)
+                IOSSDK="$(xcodebuild -version -sdk iphoneos Path)"
+                ARCH=armv7
+                CORE_SUFFIX=libretro_ios
+                ;;
+            tvos-arm64)
+                IOSSDK="$(xcodebuild -version -sdk appletvos Path)"
+                ARCH=arm64
+                CORE_SUFFIX=libretro_tvos
+                ;;
+            *)
+                echo "Unknown iOS platform $platform"
+                exit 1
+                ;;
+        esac
+        CLANG_CMD="clang -arch $ARCH -isysroot $IOSSDK"
+        EXTRA_CONFIGURE_ARGS=(
+            "--cross-prefix="
+            "--cc=$CLANG_CMD"
+            "--cxx=$CLANG_CMD"
+            "--objcc=$CLANG_CMD"
+        )
         ;;
     *)
         echo "Unknown platform $platform"
