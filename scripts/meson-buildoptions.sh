@@ -70,6 +70,8 @@ meson_options_help() {
   printf "%s\n" '  --with-pkgversion=VALUE  use specified string as sub-version of the'
   printf "%s\n" '                           package'
   printf "%s\n" '  --with-trace-file=VALUE  Trace file prefix for simple backend [trace]'
+  printf "%s\n" '  --zlib=CHOICE            How to find the zlib library [system] (choices:'
+  printf "%s\n" '                           internal/system)'
   printf "%s\n" ''
   printf "%s\n" 'Optional features, enabled with --enable-FEATURE and'
   printf "%s\n" 'disabled with --disable-FEATURE, default is enabled if available'
@@ -502,6 +504,7 @@ _meson_option_parse() {
     --disable-xen-pci-passthrough) printf "%s" -Dxen_pci_passthrough=disabled ;;
     --enable-xkbcommon) printf "%s" -Dxkbcommon=enabled ;;
     --disable-xkbcommon) printf "%s" -Dxkbcommon=disabled ;;
+    --zlib=*) quote_sh "-Dzlib=$2" ;;
     --enable-zstd) printf "%s" -Dzstd=enabled ;;
     --disable-zstd) printf "%s" -Dzstd=disabled ;;
     *) return 1 ;;
