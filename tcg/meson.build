@@ -45,6 +45,7 @@ libtcg_system = static_library('tcg_system',
                                 dependencies: tcg_ss.dependencies(),
                                 c_args: '-DCONFIG_SOFTMMU',
                                 pic: true,
+                                gnu_symbol_visibility: 'hidden',
                                 build_by_default: false)
 
 tcg_system = declare_dependency(objects: libtcg_system.extract_all_objects(recursive: false),

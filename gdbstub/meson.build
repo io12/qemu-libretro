@@ -26,6 +26,7 @@ libgdb_user = static_library('gdb_user',
 libgdb_system = static_library('gdb_system',
                                 gdb_system_ss.sources() + genh,
                                 pic: true,
+                                gnu_symbol_visibility: 'hidden',
                                 build_by_default: false)
 
 gdb_user = declare_dependency(objects: libgdb_user.extract_all_objects(recursive: false))
