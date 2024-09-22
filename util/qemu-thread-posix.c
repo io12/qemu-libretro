@@ -17,6 +17,7 @@
 #include "qemu-thread-common.h"
 #include "qemu/tsan.h"
 #include "qemu/bitmap.h"
+#include "qemu/error-report.h"
 
 #ifdef CONFIG_PTHREAD_SET_NAME_NP
 #include <pthread_np.h>
@@ -40,7 +41,7 @@ void qemu_thread_naming(bool enable)
 
 static void error_exit(int err, const char *msg)
 {
-    fprintf(stderr, "qemu: %s: %s\n", msg, strerror(err));
+    error_report("qemu: %s: %s", msg, strerror(err));
     abort();
 }
 

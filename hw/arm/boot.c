@@ -567,8 +567,8 @@ int arm_load_dtb(hwaddr addr, const struct arm_boot_info *binfo,
         /* This is user error so deserves a friendlier error message
          * than the failure of setprop_sized_cells would provide
          */
-        fprintf(stderr, "qemu: dtb file not compatible with "
-                "RAM size > 4GB\n");
+        error_report("qemu: dtb file not compatible with "
+                "RAM size > 4GB");
         goto fail;
     }
 

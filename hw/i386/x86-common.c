@@ -651,7 +651,7 @@ void x86_load_linux(X86MachineState *x86ms,
     /* load the kernel header */
     f = fopen(kernel_filename, "rb");
     if (!f) {
-        fprintf(stderr, "qemu: could not open kernel file '%s': %s\n",
+        error_report("qemu: could not open kernel file '%s': %s",
                 kernel_filename, strerror(errno));
         exit(1);
     }
@@ -660,7 +660,7 @@ void x86_load_linux(X86MachineState *x86ms,
     if (!kernel_size ||
         fread(header, 1, MIN(ARRAY_SIZE(header), kernel_size), f) !=
         MIN(ARRAY_SIZE(header), kernel_size)) {
-        fprintf(stderr, "qemu: could not load kernel '%s': %s\n",
+        error_report("qemu: could not load kernel '%s': %s",
                 kernel_filename, strerror(errno));
         exit(1);
     }
@@ -707,7 +707,7 @@ void x86_load_linux(X86MachineState *x86ms,
 
                 mapped_file = g_mapped_file_new(initrd_filename, false, &gerr);
                 if (!mapped_file) {
-                    fprintf(stderr, "qemu: error reading initrd %s: %s\n",
+                    error_report("qemu: error reading initrd %s: %s",
                             initrd_filename, gerr->message);
                     exit(1);
                 }
@@ -717,8 +717,8 @@ void x86_load_linux(X86MachineState *x86ms,
                 initrd_size = g_mapped_file_get_length(mapped_file);
                 initrd_max = x86ms->below_4g_mem_size - acpi_data_size - 1;
                 if (initrd_size >= initrd_max) {
-                    fprintf(stderr, "qemu: initrd is too large, cannot support."
-                            "(max: %"PRIu32", need %"PRId64")\n",
+                    error_report("qemu: initrd is too large, cannot support."
+                            "(max: %"PRIu32", need %"PRId64")",
                             initrd_max, (uint64_t)initrd_size);
                     exit(1);
                 }
@@ -817,7 +817,7 @@ void x86_load_linux(X86MachineState *x86ms,
         } else {
             ret = qemu_strtoui(vmode, &end, 0, &video_mode);
             if (ret != 0 || (*end && *end != ' ')) {
-                fprintf(stderr, "qemu: invalid 'vga=' kernel parameter.\n");
+                error_report("qemu: invalid 'vga=' kernel parameter.");
                 exit(1);
             }
         }
@@ -847,13 +847,13 @@ void x86_load_linux(X86MachineState *x86ms,
         GError *gerr = NULL;
 
         if (protocol < 0x200) {
-            fprintf(stderr, "qemu: linux kernel too old to load a ram disk\n");
+            error_report("qemu: linux kernel too old to load a ram disk");
             exit(1);
         }
 
         mapped_file = g_mapped_file_new(initrd_filename, false, &gerr);
         if (!mapped_file) {
-            fprintf(stderr, "qemu: error reading initrd %s: %s\n",
+            error_report("qemu: error reading initrd %s: %s",
                     initrd_filename, gerr->message);
             exit(1);
         }
@@ -862,8 +862,8 @@ void x86_load_linux(X86MachineState *x86ms,
         initrd_data = g_mapped_file_get_contents(mapped_file);
         initrd_size = g_mapped_file_get_length(mapped_file);
         if (initrd_size >= initrd_max) {
-            fprintf(stderr, "qemu: initrd is too large, cannot support."
-                    "(max: %"PRIu32", need %"PRId64")\n",
+            error_report("qemu: initrd is too large, cannot support."
+                    "(max: %"PRIu32", need %"PRId64")",
                     initrd_max, (uint64_t)initrd_size);
             exit(1);
         }
@@ -887,7 +887,7 @@ void x86_load_linux(X86MachineState *x86ms,
     }
     setup_size = (setup_size + 1) * 512;
     if (setup_size > kernel_size) {
-        fprintf(stderr, "qemu: invalid kernel header\n");
+        error_report("qemu: invalid kernel header");
         exit(1);
     }
     kernel_size -= setup_size;
@@ -908,13 +908,13 @@ void x86_load_linux(X86MachineState *x86ms,
     /* append dtb to kernel */
     if (dtb_filename) {
         if (protocol < 0x209) {
-            fprintf(stderr, "qemu: Linux kernel too old to load a dtb\n");
+            error_report("qemu: Linux kernel too old to load a dtb");
             exit(1);
         }
 
         dtb_size = get_image_size(dtb_filename);
         if (dtb_size <= 0) {
-            fprintf(stderr, "qemu: error reading dtb %s: %s\n",
+            error_report("qemu: error reading dtb %s: %s",
                     dtb_filename, strerror(errno));
             exit(1);
         }
@@ -1041,6 +1041,6 @@ void x86_bios_rom_init(X86MachineState *x86ms, const char *default_firmware,
     return;
 
 bios_error:
-    fprintf(stderr, "qemu: could not load PC BIOS '%s'\n", bios_name);
+    error_report("qemu: could not load PC BIOS '%s'", bios_name);
     exit(1);
 }

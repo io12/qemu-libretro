@@ -15,7 +15,7 @@ Then run
 mkdir build
 cd build
 CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-fdt=internal --enable-libretro --audio-drv-list=libretro --disable-sdl
-make
+make libqemu-system-i386.so
 ```
 
 ## Compile instructions (Android)
@@ -24,7 +24,7 @@ make
 mkdir build
 cd build
 CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-fdt=internal --enable-libretro --audio-drv-list=libretro --disable-sdl --cross-prefix=aarch64-linux-android- --cc=aarch64-linux-android30-clang --host-cc=gcc --cxx=aarch64-linux-android30-clang++
-make
+make libqemu-system-i386.so
 ```
 
 ## Usage

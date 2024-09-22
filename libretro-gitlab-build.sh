@@ -155,6 +155,6 @@ CFLAGS=-Wno-error ../configure \
     --disable-sdl \
     ${EXTRA_CONFIGURE_ARGS[@]+"${EXTRA_CONFIGURE_ARGS[@]}"}
 
-make -j$NUMPROC
-
-cp libqemu-system-i386.$LIB_EXT ../qemu_$CORE_SUFFIX.$LIB_EXT
+BUILD_OUT=libqemu-system-i386.$LIB_EXT
+make -j$NUMPROC $BUILD_OUT
+cp $BUILD_OUT ../qemu_$CORE_SUFFIX.$LIB_EXT

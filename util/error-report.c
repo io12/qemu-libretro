@@ -14,16 +14,6 @@
 #include "monitor/monitor.h"
 #include "qemu/error-report.h"
 
-/*
- * @report_type is the type of message: error, warning or
- * informational.
- */
-typedef enum {
-    REPORT_TYPE_ERROR,
-    REPORT_TYPE_WARNING,
-    REPORT_TYPE_INFO,
-} report_type;
-
 /* Prepend timestamp to messages */
 bool message_with_timestamp;
 bool error_with_guestname;
@@ -135,6 +125,7 @@ void loc_set_file(const char *fname, int lno)
     }
 }
 
+#if !defined(CONFIG_LIBRETRO)
 /*
  * Print current location to current monitor if we have one, else to stderr.
  */
@@ -183,8 +174,7 @@ real_time_iso8601(void)
  * a single phrase, with no newline or trailing punctuation.
  * Prepend the current location and append a newline.
  */
-G_GNUC_PRINTF(2, 0)
-static void vreport(report_type type, const char *fmt, va_list ap)
+void vreport(report_type type, const char *fmt, va_list ap)
 {
     gchar *timestr;
 
@@ -215,6 +205,7 @@ static void vreport(report_type type, const char *fmt, va_list ap)
     error_vprintf(fmt, ap);
     error_printf("\n");
 }
+#endif
 
 /*
  * Print an error message to current monitor if we have one, else to stderr.

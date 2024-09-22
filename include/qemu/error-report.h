@@ -13,6 +13,18 @@
 #ifndef QEMU_ERROR_REPORT_H
 #define QEMU_ERROR_REPORT_H
 
+/*
+ * @report_type is the type of message: error, warning or
+ * informational.
+ */
+typedef enum {
+	REPORT_TYPE_ERROR,
+	REPORT_TYPE_WARNING,
+	REPORT_TYPE_INFO,
+} report_type;
+
+void vreport(report_type type, const char *fmt, va_list ap) G_GNUC_PRINTF(2, 0);
+
 typedef struct Location {
     /* all members are private to qemu-error.c */
     enum { LOC_NONE, LOC_CMDLINE, LOC_FILE } kind;

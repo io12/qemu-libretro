@@ -29,6 +29,7 @@
 #include "boot.h"
 #include "qemu/cutils.h"
 #include "sysemu/reset.h"
+#include "qemu/error-report.h"
 
 static void main_cpu_reset(void *opaque)
 {
@@ -86,7 +87,7 @@ void cris_load_image(CRISCPU *cpu, struct cris_load_info *li)
     }
 
     if (image_size < 0) {
-        fprintf(stderr, "qemu: could not load kernel '%s'\n",
+        error_report("qemu: could not load kernel '%s'",
                 li->image_filename);
         exit(1);
     }

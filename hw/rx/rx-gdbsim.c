@@ -65,7 +65,7 @@ static void rx_load_image(RXCPU *cpu, const char *filename,
 
     kernel_size = load_image_targphys(filename, start, size);
     if (kernel_size < 0) {
-        fprintf(stderr, "qemu: could not load kernel '%s'\n", filename);
+        error_report("qemu: could not load kernel '%s'", filename);
         exit(1);
     }
     cpu->env.pc = start;

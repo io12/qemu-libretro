@@ -4,12 +4,12 @@
 #include <string.h>
 #include <libgen.h>
 #include <pthread.h>
-#include <glib/gstdio.h>
 
 #include "qemu/datadir.h"
 #include "qemu/osdep.h"
 #include "qemu/module.h"
 #include "qemu/main-loop.h"
+#include "qemu/error-report.h"
 #include "qemu-main.h"
 #include "sysemu/sysemu.h"
 #include "ui/console.h"
@@ -447,35 +447,49 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
 }
 
-#ifdef __ANDROID__
-#include <android/log.h>
+static bool exited = false;
 
-static int logger_pipe[2];
-static pthread_t logger_thread;
-
-static void *logger_thread_fn(void *arg)
+void vreport(report_type type, const char *fmt, va_list ap)
 {
-	ssize_t rdsz;
-	char buf[128];
-	while ((rdsz = read(logger_pipe[0], buf, sizeof buf - 1)) > 0) {
-		if (buf[rdsz - 1] == '\n')
-			--rdsz;
-		buf[rdsz] = 0; /* add null-terminator */
-		__android_log_write(ANDROID_LOG_INFO, "qemu_libretro", buf);
+	unsigned duration = 5000; // 5 seconds
+	enum retro_log_level level;
+	switch (type) {
+	case REPORT_TYPE_WARNING:
+		level = RETRO_LOG_WARN;
+		break;
+	case REPORT_TYPE_INFO:
+		level = RETRO_LOG_INFO;
+		break;
+	default:
+		level = RETRO_LOG_ERROR;
+		// I can't find a way to make it permanent, so instead display for a full day
+		duration = 1000 * 60 * 60 * 24;
+		break;
 	}
-	return NULL;
-}
 
-static void start_logger(void)
-{
-	setbuf(stdout, NULL);
-	setbuf(stderr, NULL);
-	pipe(logger_pipe);
-	dup2(logger_pipe[1], 1);
-	dup2(logger_pipe[1], 2);
-	pthread_create(&logger_thread, NULL, logger_thread_fn, NULL);
+	char *msg = g_strdup_vprintf(fmt, ap);
+
+	fprintf(stderr, "%s\n", msg);
+
+	cb_env(RETRO_ENVIRONMENT_SET_MESSAGE_EXT,
+	       &(struct retro_message_ext){
+		       .msg = msg,
+		       .duration = duration,
+		       .priority = 0,
+		       .level = level,
+		       .target = RETRO_MESSAGE_TARGET_ALL,
+		       .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
+	       });
+
+	g_free(msg);
+
+	if (level == RETRO_LOG_ERROR) {
+		exited = true;
+		for (;;) {
+			switch_to_main_thread();
+		}
+	}
 }
-#endif /* __ANDROID__ */
 
 bool retro_load_game(const struct retro_game_info *game)
 {
@@ -484,9 +498,6 @@ bool retro_load_game(const struct retro_game_info *game)
 	}
 
 	game_path = game->path;
-#ifdef __ANDROID__
-	start_logger();
-#endif
 	pthread_create(&emu_thread, NULL, emu_thread_fn, NULL);
 	return true;
 }
@@ -502,10 +513,6 @@ void retro_unload_game(void)
 {
 	pthread_kill(emu_thread, SIGTERM);
 	pthread_join(emu_thread, NULL);
-#ifdef __ANDROID__
-	pthread_kill(logger_thread, SIGTERM);
-	pthread_join(logger_thread, NULL);
-#endif
 }
 
 unsigned retro_get_region(void)
@@ -593,6 +600,12 @@ static void display_init(DisplayState *ds, DisplayOptions *o)
 
 void retro_run(void)
 {
+	if (exited) {
+		// Send an empty frame so error notifications still display
+		cb_video_refresh(NULL, 0, 0, 0);
+		return;
+	}
+
 	cb_input_poll();
 
 	mouse_dx = cb_input_state(0, RETRO_DEVICE_MOUSE, 0,
