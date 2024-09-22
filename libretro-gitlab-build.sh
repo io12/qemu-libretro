@@ -143,7 +143,7 @@ cd build
 
 CFLAGS=-Wno-error ../configure \
     --without-default-features \
-    --target-list=i386-softmmu \
+    --target-list="$QEMU_TARGET"-softmmu \
     --glib=internal \
     --zlib=internal \
     --disable-pie \
@@ -156,6 +156,6 @@ CFLAGS=-Wno-error ../configure \
     -Dwrap_mode=forcefallback \
     ${EXTRA_CONFIGURE_ARGS[@]+"${EXTRA_CONFIGURE_ARGS[@]}"}
 
-BUILD_OUT=libqemu-system-i386.$LIB_EXT
-make -j$NUMPROC $BUILD_OUT
-cp $BUILD_OUT ../qemu_$CORE_SUFFIX.$LIB_EXT
+BUILD_OUT="libqemu-system-$QEMU_TARGET.$LIB_EXT"
+make -j"$NUMPROC" "$BUILD_OUT"
+cp "$BUILD_OUT" "../${CORENAME}_$CORE_SUFFIX.$LIB_EXT"

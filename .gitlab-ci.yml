@@ -7,9 +7,160 @@
 # Core definitions
 .core-defs:
   variables:
-    CORENAME: qemu
     MAKEFILE: Makefile.libretro-gitlab
     GIT_SUBMODULE_STRATEGY: recursive
+
+# QEMU target definitions
+.core-defs-aarch64:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: aarch64
+    CORENAME: qemu_aarch64
+.core-defs-alpha:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: alpha
+    CORENAME: qemu_alpha
+.core-defs-arm:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: arm
+    CORENAME: qemu_arm
+.core-defs-avr:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: avr
+    CORENAME: qemu_avr
+.core-defs-cris:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: cris
+    CORENAME: qemu_cris
+.core-defs-hppa:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: hppa
+    CORENAME: qemu_hppa
+.core-defs-i386:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: i386
+    CORENAME: qemu_i386
+.core-defs-loongarch64:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: loongarch64
+    CORENAME: qemu_loongarch64
+.core-defs-m68k:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: m68k
+    CORENAME: qemu_m68k
+.core-defs-microblazeel:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: microblazeel
+    CORENAME: qemu_microblazeel
+.core-defs-microblaze:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: microblaze
+    CORENAME: qemu_microblaze
+.core-defs-mips64el:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: mips64el
+    CORENAME: qemu_mips64el
+.core-defs-mips64:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: mips64
+    CORENAME: qemu_mips64
+.core-defs-mipsel:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: mipsel
+    CORENAME: qemu_mipsel
+.core-defs-mips:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: mips
+    CORENAME: qemu_mips
+.core-defs-or1k:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: or1k
+    CORENAME: qemu_or1k
+.core-defs-ppc64:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: ppc64
+    CORENAME: qemu_ppc64
+.core-defs-ppc:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: ppc
+    CORENAME: qemu_ppc
+.core-defs-riscv32:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: riscv32
+    CORENAME: qemu_riscv32
+.core-defs-riscv64:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: riscv64
+    CORENAME: qemu_riscv64
+.core-defs-rx:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: rx
+    CORENAME: qemu_rx
+.core-defs-s390x:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: s390x
+    CORENAME: qemu_s390x
+.core-defs-sh4eb:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: sh4eb
+    CORENAME: qemu_sh4eb
+.core-defs-sh4:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: sh4
+    CORENAME: qemu_sh4
+.core-defs-sparc64:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: sparc64
+    CORENAME: qemu_sparc64
+.core-defs-sparc:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: sparc
+    CORENAME: qemu_sparc
+.core-defs-tricore:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: tricore
+    CORENAME: qemu_tricore
+.core-defs-x86_64:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: x86_64
+    CORENAME: qemu_x86_64
+.core-defs-xtensaeb:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: xtensaeb
+    CORENAME: qemu_xtensaeb
+.core-defs-xtensa:
+  extends: .core-defs
+  variables:
+    QEMU_TARGET: xtensa
+    CORENAME: qemu_xtensa
 
 # Inclusion templates, required for the build to work
 include:
@@ -141,16 +292,248 @@ stages:
 #
 ################################### DESKTOPS #################################
 # Windows 64-bit
-libretro-build-windows-x64:
+windows-x64-aarch64:
   extends:
     - .libretro-windows-x64-mingw-make-default
-    - .core-defs
+    - .core-defs-aarch64
+windows-x64-alpha:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-alpha
+windows-x64-arm:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-arm
+windows-x64-avr:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-avr
+windows-x64-cris:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-cris
+windows-x64-hppa:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-hppa
+windows-x64-i386:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-i386
+windows-x64-loongarch64:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-loongarch64
+windows-x64-m68k:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-m68k
+windows-x64-microblazeel:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-microblazeel
+windows-x64-microblaze:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-microblaze
+windows-x64-mips64el:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-mips64el
+windows-x64-mips64:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-mips64
+windows-x64-mipsel:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-mipsel
+windows-x64-mips:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-mips
+windows-x64-or1k:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-or1k
+windows-x64-ppc64:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-ppc64
+windows-x64-ppc:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-ppc
+windows-x64-riscv32:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-riscv32
+windows-x64-riscv64:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-riscv64
+windows-x64-rx:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-rx
+windows-x64-s390x:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-s390x
+windows-x64-sh4eb:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-sh4eb
+windows-x64-sh4:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-sh4
+windows-x64-sparc64:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-sparc64
+windows-x64-sparc:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-sparc
+windows-x64-tricore:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-tricore
+windows-x64-x86_64:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-x86_64
+windows-x64-xtensaeb:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-xtensaeb
+windows-x64-xtensa:
+  extends:
+    - .libretro-windows-x64-mingw-make-default
+    - .core-defs-xtensa
 
 # Windows 32-bit
-libretro-build-windows-i686:
+windows-i686-aarch64:
   extends:
     - .libretro-windows-i686-mingw-make-default
-    - .core-defs
+    - .core-defs-aarch64
+windows-i686-alpha:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-alpha
+windows-i686-arm:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-arm
+windows-i686-avr:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-avr
+windows-i686-cris:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-cris
+windows-i686-hppa:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-hppa
+windows-i686-i386:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-i386
+windows-i686-loongarch64:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-loongarch64
+windows-i686-m68k:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-m68k
+windows-i686-microblazeel:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-microblazeel
+windows-i686-microblaze:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-microblaze
+windows-i686-mips64el:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-mips64el
+windows-i686-mips64:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-mips64
+windows-i686-mipsel:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-mipsel
+windows-i686-mips:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-mips
+windows-i686-or1k:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-or1k
+windows-i686-ppc64:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-ppc64
+windows-i686-ppc:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-ppc
+windows-i686-riscv32:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-riscv32
+windows-i686-riscv64:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-riscv64
+windows-i686-rx:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-rx
+windows-i686-s390x:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-s390x
+windows-i686-sh4eb:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-sh4eb
+windows-i686-sh4:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-sh4
+windows-i686-sparc64:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-sparc64
+windows-i686-sparc:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-sparc
+windows-i686-tricore:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-tricore
+windows-i686-x86_64:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-x86_64
+windows-i686-xtensaeb:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-xtensaeb
+windows-i686-xtensa:
+  extends:
+    - .libretro-windows-i686-mingw-make-default
+    - .core-defs-xtensa
 
 # # Windows msvc10 64-bit
 # libretro-build-windows-msvc10-x64:
@@ -177,65 +560,1103 @@ libretro-build-windows-i686:
 #     - .core-defs
 
 # Linux 64-bit
-libretro-build-linux-x64:
+linux-x64-aarch64:
   extends:
     - .libretro-linux-x64-make-default
-    - .core-defs
+    - .core-defs-aarch64
+linux-x64-alpha:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-alpha
+linux-x64-arm:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-arm
+linux-x64-avr:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-avr
+linux-x64-cris:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-cris
+linux-x64-hppa:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-hppa
+linux-x64-i386:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-i386
+linux-x64-loongarch64:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-loongarch64
+linux-x64-m68k:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-m68k
+linux-x64-microblazeel:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-microblazeel
+linux-x64-microblaze:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-microblaze
+linux-x64-mips64el:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-mips64el
+linux-x64-mips64:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-mips64
+linux-x64-mipsel:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-mipsel
+linux-x64-mips:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-mips
+linux-x64-or1k:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-or1k
+linux-x64-ppc64:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-ppc64
+linux-x64-ppc:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-ppc
+linux-x64-riscv32:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-riscv32
+linux-x64-riscv64:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-riscv64
+linux-x64-rx:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-rx
+linux-x64-s390x:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-s390x
+linux-x64-sh4eb:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-sh4eb
+linux-x64-sh4:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-sh4
+linux-x64-sparc64:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-sparc64
+linux-x64-sparc:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-sparc
+linux-x64-tricore:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-tricore
+linux-x64-x86_64:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-x86_64
+linux-x64-xtensaeb:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-xtensaeb
+linux-x64-xtensa:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs-xtensa
 
 # Linux 32-bit
-libretro-build-linux-i686:
+linux-i686-aarch64:
   extends:
     - .libretro-linux-i686-make-default
-    - .core-defs
+    - .core-defs-aarch64
+linux-i686-alpha:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-alpha
+linux-i686-arm:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-arm
+linux-i686-avr:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-avr
+linux-i686-cris:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-cris
+linux-i686-hppa:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-hppa
+linux-i686-i386:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-i386
+linux-i686-loongarch64:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-loongarch64
+linux-i686-m68k:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-m68k
+linux-i686-microblazeel:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-microblazeel
+linux-i686-microblaze:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-microblaze
+linux-i686-mips64el:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-mips64el
+linux-i686-mips64:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-mips64
+linux-i686-mipsel:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-mipsel
+linux-i686-mips:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-mips
+linux-i686-or1k:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-or1k
+linux-i686-ppc64:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-ppc64
+linux-i686-ppc:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-ppc
+linux-i686-riscv32:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-riscv32
+linux-i686-riscv64:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-riscv64
+linux-i686-rx:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-rx
+linux-i686-s390x:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-s390x
+linux-i686-sh4eb:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-sh4eb
+linux-i686-sh4:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-sh4
+linux-i686-sparc64:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-sparc64
+linux-i686-sparc:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-sparc
+linux-i686-tricore:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-tricore
+linux-i686-x86_64:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-x86_64
+linux-i686-xtensaeb:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-xtensaeb
+linux-i686-xtensa:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs-xtensa
 
 # MacOS 64-bit
-libretro-build-osx-x64:
+osx-x64-aarch64:
   extends:
     - .libretro-osx-x64-make-default
-    - .core-defs
+    - .core-defs-aarch64
+osx-x64-alpha:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-alpha
+osx-x64-arm:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-arm
+osx-x64-avr:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-avr
+osx-x64-cris:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-cris
+osx-x64-hppa:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-hppa
+osx-x64-i386:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-i386
+osx-x64-loongarch64:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-loongarch64
+osx-x64-m68k:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-m68k
+osx-x64-microblazeel:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-microblazeel
+osx-x64-microblaze:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-microblaze
+osx-x64-mips64el:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-mips64el
+osx-x64-mips64:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-mips64
+osx-x64-mipsel:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-mipsel
+osx-x64-mips:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-mips
+osx-x64-or1k:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-or1k
+osx-x64-ppc64:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-ppc64
+osx-x64-ppc:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-ppc
+osx-x64-riscv32:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-riscv32
+osx-x64-riscv64:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-riscv64
+osx-x64-rx:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-rx
+osx-x64-s390x:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-s390x
+osx-x64-sh4eb:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-sh4eb
+osx-x64-sh4:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-sh4
+osx-x64-sparc64:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-sparc64
+osx-x64-sparc:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-sparc
+osx-x64-tricore:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-tricore
+osx-x64-x86_64:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-x86_64
+osx-x64-xtensaeb:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-xtensaeb
+osx-x64-xtensa:
+  extends:
+    - .libretro-osx-x64-make-default
+    - .core-defs-xtensa
 
 # MacOS ARM 64-bit
-libretro-build-osx-arm64:
+osx-arm64-aarch64:
   extends:
     - .libretro-osx-arm64-make-default
-    - .core-defs
-
-# MacOS PowerPC 32-bit
-libretro-build-osx-ppc:
+    - .core-defs-aarch64
+osx-arm64-alpha:
   extends:
-    - .libretro-osx-ppc-make-default
-    - .core-defs
+    - .libretro-osx-arm64-make-default
+    - .core-defs-alpha
+osx-arm64-arm:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-arm
+osx-arm64-avr:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-avr
+osx-arm64-cris:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-cris
+osx-arm64-hppa:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-hppa
+osx-arm64-i386:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-i386
+osx-arm64-loongarch64:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-loongarch64
+osx-arm64-m68k:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-m68k
+osx-arm64-microblazeel:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-microblazeel
+osx-arm64-microblaze:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-microblaze
+osx-arm64-mips64el:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-mips64el
+osx-arm64-mips64:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-mips64
+osx-arm64-mipsel:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-mipsel
+osx-arm64-mips:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-mips
+osx-arm64-or1k:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-or1k
+osx-arm64-ppc64:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-ppc64
+osx-arm64-ppc:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-ppc
+osx-arm64-riscv32:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-riscv32
+osx-arm64-riscv64:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-riscv64
+osx-arm64-rx:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-rx
+osx-arm64-s390x:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-s390x
+osx-arm64-sh4eb:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-sh4eb
+osx-arm64-sh4:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-sh4
+osx-arm64-sparc64:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-sparc64
+osx-arm64-sparc:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-sparc
+osx-arm64-tricore:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-tricore
+osx-arm64-x86_64:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-x86_64
+osx-arm64-xtensaeb:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-xtensaeb
+osx-arm64-xtensa:
+  extends:
+    - .libretro-osx-arm64-make-default
+    - .core-defs-xtensa
 
 ################################### CELLULAR #################################
 # Android ARMv7a
-android-armeabi-v7a:
+android-armeabi-v7a-aarch64:
   extends:
     - .libretro-android-make-armeabi-v7a
-    - .core-defs
+    - .core-defs-aarch64
+android-armeabi-v7a-alpha:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-alpha
+android-armeabi-v7a-arm:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-arm
+android-armeabi-v7a-avr:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-avr
+android-armeabi-v7a-cris:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-cris
+android-armeabi-v7a-hppa:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-hppa
+android-armeabi-v7a-i386:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-i386
+android-armeabi-v7a-loongarch64:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-loongarch64
+android-armeabi-v7a-m68k:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-m68k
+android-armeabi-v7a-microblazeel:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-microblazeel
+android-armeabi-v7a-microblaze:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-microblaze
+android-armeabi-v7a-mips64el:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-mips64el
+android-armeabi-v7a-mips64:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-mips64
+android-armeabi-v7a-mipsel:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-mipsel
+android-armeabi-v7a-mips:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-mips
+android-armeabi-v7a-or1k:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-or1k
+android-armeabi-v7a-ppc64:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-ppc64
+android-armeabi-v7a-ppc:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-ppc
+android-armeabi-v7a-riscv32:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-riscv32
+android-armeabi-v7a-riscv64:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-riscv64
+android-armeabi-v7a-rx:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-rx
+android-armeabi-v7a-s390x:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-s390x
+android-armeabi-v7a-sh4eb:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-sh4eb
+android-armeabi-v7a-sh4:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-sh4
+android-armeabi-v7a-sparc64:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-sparc64
+android-armeabi-v7a-sparc:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-sparc
+android-armeabi-v7a-tricore:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-tricore
+android-armeabi-v7a-x86_64:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-x86_64
+android-armeabi-v7a-xtensaeb:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-xtensaeb
+android-armeabi-v7a-xtensa:
+  extends:
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs-xtensa
 
 # Android ARMv8a
-android-arm64-v8a:
+android-android-arm64-v8a-aarch64:
   extends:
     - .libretro-android-make-arm64-v8a
-    - .core-defs
+    - .core-defs-aarch64
+android-android-arm64-v8a-alpha:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-alpha
+android-android-arm64-v8a-arm:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-arm
+android-android-arm64-v8a-avr:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-avr
+android-android-arm64-v8a-cris:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-cris
+android-android-arm64-v8a-hppa:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-hppa
+android-android-arm64-v8a-i386:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-i386
+android-android-arm64-v8a-loongarch64:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-loongarch64
+android-android-arm64-v8a-m68k:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-m68k
+android-android-arm64-v8a-microblazeel:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-microblazeel
+android-android-arm64-v8a-microblaze:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-microblaze
+android-android-arm64-v8a-mips64el:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-mips64el
+android-android-arm64-v8a-mips64:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-mips64
+android-android-arm64-v8a-mipsel:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-mipsel
+android-android-arm64-v8a-mips:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-mips
+android-android-arm64-v8a-or1k:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-or1k
+android-android-arm64-v8a-ppc64:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-ppc64
+android-android-arm64-v8a-ppc:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-ppc
+android-android-arm64-v8a-riscv32:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-riscv32
+android-android-arm64-v8a-riscv64:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-riscv64
+android-android-arm64-v8a-rx:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-rx
+android-android-arm64-v8a-s390x:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-s390x
+android-android-arm64-v8a-sh4eb:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-sh4eb
+android-android-arm64-v8a-sh4:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-sh4
+android-android-arm64-v8a-sparc64:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-sparc64
+android-android-arm64-v8a-sparc:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-sparc
+android-android-arm64-v8a-tricore:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-tricore
+android-android-arm64-v8a-x86_64:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-x86_64
+android-android-arm64-v8a-xtensaeb:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-xtensaeb
+android-android-arm64-v8a-xtensa:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs-xtensa
 
 # Android 64-bit x86
-android-x86_64:
+android-x86_64-aarch64:
   extends:
     - .libretro-android-make-x86_64
-    - .core-defs
+    - .core-defs-aarch64
+android-x86_64-alpha:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-alpha
+android-x86_64-arm:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-arm
+android-x86_64-avr:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-avr
+android-x86_64-cris:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-cris
+android-x86_64-hppa:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-hppa
+android-x86_64-i386:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-i386
+android-x86_64-loongarch64:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-loongarch64
+android-x86_64-m68k:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-m68k
+android-x86_64-microblazeel:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-microblazeel
+android-x86_64-microblaze:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-microblaze
+android-x86_64-mips64el:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-mips64el
+android-x86_64-mips64:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-mips64
+android-x86_64-mipsel:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-mipsel
+android-x86_64-mips:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-mips
+android-x86_64-or1k:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-or1k
+android-x86_64-ppc64:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-ppc64
+android-x86_64-ppc:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-ppc
+android-x86_64-riscv32:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-riscv32
+android-x86_64-riscv64:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-riscv64
+android-x86_64-rx:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-rx
+android-x86_64-s390x:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-s390x
+android-x86_64-sh4eb:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-sh4eb
+android-x86_64-sh4:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-sh4
+android-x86_64-sparc64:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-sparc64
+android-x86_64-sparc:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-sparc
+android-x86_64-tricore:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-tricore
+android-x86_64-x86_64:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-x86_64
+android-x86_64-xtensaeb:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-xtensaeb
+android-x86_64-xtensa:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs-xtensa
 
 # Android 32-bit x86
-android-x86:
+android-x86-aarch64:
   extends:
     - .libretro-android-make-x86
-    - .core-defs
+    - .core-defs-aarch64
+android-x86-alpha:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-alpha
+android-x86-arm:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-arm
+android-x86-avr:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-avr
+android-x86-cris:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-cris
+android-x86-hppa:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-hppa
+android-x86-i386:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-i386
+android-x86-loongarch64:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-loongarch64
+android-x86-m68k:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-m68k
+android-x86-microblazeel:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-microblazeel
+android-x86-microblaze:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-microblaze
+android-x86-mips64el:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-mips64el
+android-x86-mips64:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-mips64
+android-x86-mipsel:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-mipsel
+android-x86-mips:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-mips
+android-x86-or1k:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-or1k
+android-x86-ppc64:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-ppc64
+android-x86-ppc:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-ppc
+android-x86-riscv32:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-riscv32
+android-x86-riscv64:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-riscv64
+android-x86-rx:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-rx
+android-x86-s390x:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-s390x
+android-x86-sh4eb:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-sh4eb
+android-x86-sh4:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-sh4
+android-x86-sparc64:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-sparc64
+android-x86-sparc:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-sparc
+android-x86-tricore:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-tricore
+android-x86-x86_64:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-x86_64
+android-x86-xtensaeb:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-xtensaeb
+android-x86-xtensa:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs-xtensa
 
 # iOS
-libretro-build-ios-arm64:
+ios-arm64-aarch64:
   extends:
     - .libretro-ios-arm64-make-default
-    - .core-defs
+    - .core-defs-aarch64
+ios-arm64-alpha:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-alpha
+ios-arm64-arm:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-arm
+ios-arm64-avr:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-avr
+ios-arm64-cris:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-cris
+ios-arm64-hppa:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-hppa
+ios-arm64-i386:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-i386
+ios-arm64-loongarch64:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-loongarch64
+ios-arm64-m68k:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-m68k
+ios-arm64-microblazeel:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-microblazeel
+ios-arm64-microblaze:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-microblaze
+ios-arm64-mips64el:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-mips64el
+ios-arm64-mips64:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-mips64
+ios-arm64-mipsel:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-mipsel
+ios-arm64-mips:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-mips
+ios-arm64-or1k:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-or1k
+ios-arm64-ppc64:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-ppc64
+ios-arm64-ppc:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-ppc
+ios-arm64-riscv32:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-riscv32
+ios-arm64-riscv64:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-riscv64
+ios-arm64-rx:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-rx
+ios-arm64-s390x:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-s390x
+ios-arm64-sh4eb:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-sh4eb
+ios-arm64-sh4:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-sh4
+ios-arm64-sparc64:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-sparc64
+ios-arm64-sparc:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-sparc
+ios-arm64-tricore:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-tricore
+ios-arm64-x86_64:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-x86_64
+ios-arm64-xtensaeb:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-xtensaeb
+ios-arm64-xtensa:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs-xtensa
 
 # # iOS (armv7) [iOS 9 and up]
 # libretro-build-ios9:
