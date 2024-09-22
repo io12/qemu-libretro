@@ -64,3 +64,6 @@
 [submodule "subprojects/libvfio-user"]
 	path = subprojects/libvfio-user
 	url = https://gitlab.com/qemu-project/libvfio-user.git
+[submodule "libretro-common"]
+	path = libretro-common
+	url = https://github.com/libretro/libretro-common

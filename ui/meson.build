@@ -48,6 +48,10 @@ vnc_ss.add(when: sasl, if_true: files('vnc-auth-sasl.c'))
 softmmu_ss.add_all(when: vnc, if_true: vnc_ss)
 softmmu_ss.add(when: vnc, if_false: files('vnc-stubs.c'))
 
+libretro_ss = ss.source_set()
+libretro_ss.add(files('libretro.c'))
+system_ss.add_all(when: libretro, if_true: libretro_ss)
+
 ui_modules = {}
 
 if curses.found()

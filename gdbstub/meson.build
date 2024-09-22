@@ -20,12 +20,14 @@ gdb_softmmu_ss = gdb_softmmu_ss.apply(config_host, strict: false)
 libgdb_user = static_library('gdb_user',
                              gdb_user_ss.sources() + genh,
                              name_suffix: 'fa',
+                             pic: true,
                              c_args: '-DCONFIG_USER_ONLY',
                              build_by_default: have_user)
 
 libgdb_softmmu = static_library('gdb_softmmu',
                                 gdb_softmmu_ss.sources() + genh,
                                 name_suffix: 'fa',
+                                pic: true,
                                 build_by_default: have_system)
 
 gdb_user = declare_dependency(link_whole: libgdb_user)

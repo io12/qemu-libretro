@@ -3279,6 +3279,11 @@ void qemu_init(int argc, char **argv)
                 warn_report("-no-hpet is deprecated, use '-machine hpet=off' instead");
                 qdict_put_str(machine_opts_dict, "hpet", "off");
                 break;
+#ifdef CONFIG_LIBRETRO
+            case QEMU_OPTION_libretro:
+                puts("TODO: handle -libretro");
+                break;
+#endif
             case QEMU_OPTION_no_reboot:
                 olist = qemu_find_opts("action");
                 qemu_opts_parse_noisily(olist, "reboot=shutdown", false);
