@@ -3819,7 +3819,7 @@ foreach target : target_dirs
   endif
   foreach exe: execs
     exe_name = exe['name']
-    if targetos == 'darwin'
+    if targetos == 'darwin' and not libretro.found()
       exe_name += '-unsigned'
     endif
 
