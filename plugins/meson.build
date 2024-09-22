@@ -1,6 +1,6 @@
 plugin_ldflags = []
 # Modules need more symbols than just those in plugins/qemu-plugins.symbols
-if not enable_modules
+if not enable_modules and not libretro.found()
   if targetos == 'darwin'
     configure_file(
       input: files('qemu-plugins.symbols'),
