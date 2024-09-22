@@ -1,0 +1,12 @@
+diff --git a/libfdt/meson.build b/libfdt/meson.build
+index 0307ffb..5f76691 100644
+--- a/libfdt/meson.build
++++ b/libfdt/meson.build
+@@ -21,6 +21,7 @@ libfdt = library(
+   version: '1.6.0',
+   link_args: ['-Wl,--no-undefined', version_script],
+   link_depends: 'version.lds',
++  pic: true,
+   install: true,
+ )
+ 

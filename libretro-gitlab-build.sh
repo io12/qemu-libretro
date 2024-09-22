@@ -147,7 +147,7 @@ CFLAGS=-Wno-error ../configure \
     --glib=internal \
     --zlib=internal \
     --disable-pie \
-    --disable-fdt \
+    --enable-fdt=internal \
     --disable-modules \
     --disable-plugins \
     --enable-libretro \
