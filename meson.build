@@ -1864,6 +1864,7 @@ if have_system
     'coreaudio': coreaudio.found(),
     'dsound': dsound.found(),
     'jack': jack.found(),
+    'libretro': libretro.found(),
     'oss': oss.found(),
     'pa': pulse.found(),
     'sdl': sdl.found(),
