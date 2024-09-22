@@ -3,7 +3,6 @@ project('qemu', ['c'], meson_version: '>=0.61.3',
                           'b_staticpic=false', 'stdsplit=false', 'optimization=2', 'b_pie=true'],
         version: files('VERSION'))
 
-add_test_setup('quick', exclude_suites: ['slow', 'thorough'], is_default: true)
 add_test_setup('slow', exclude_suites: ['thorough'], env: ['G_TEST_SLOW=1', 'SPEED=slow'])
 add_test_setup('thorough', env: ['G_TEST_SLOW=1', 'SPEED=thorough'])
 
@@ -589,22 +588,91 @@ endif
 # Dependencies #
 ################
 
-# The path to glib.h is added to all compilation commands.  This was
-# grandfathered in from the QEMU Makefiles.
-add_project_arguments(config_host['GLIB_CFLAGS'].split(),
-                      native: false, language: all_languages)
-glib = declare_dependency(compile_args: config_host['GLIB_CFLAGS'].split(),
-                          link_args: config_host['GLIB_LIBS'].split(),
-                          version: config_host['GLIB_VERSION'],
-                          variables: {
-                            'bindir': config_host['GLIB_BINDIR'],
-                          })
-# override glib dep with the configure results (for subprojects)
-meson.override_dependency('glib-2.0', glib)
-# pass down whether Glib has the slice allocator
-if config_host.has_key('HAVE_GLIB_WITH_SLICE_ALLOCATOR')
-  config_host_data.set('HAVE_GLIB_WITH_SLICE_ALLOCATOR', true)
+glib_req_ver = '>=2.66.0'
+glib = not_found
+glib_opt = get_option('glib')
+if glib_opt == 'system'
+# When bumping glib minimum version, please check also whether to increase
+# the _WIN32_WINNT setting in osdep.h according to the value from glib
+glib_pc = dependency('glib-2.0', version: glib_req_ver, required: true,
+                    method: 'pkg-config')
+glib_cflags = []
+if enable_modules
+  gmodule = dependency('gmodule-export-2.0', version: glib_req_ver, required: true,
+                       method: 'pkg-config')
+elif get_option('plugins')
+  gmodule = dependency('gmodule-no-export-2.0', version: glib_req_ver, required: true,
+                       method: 'pkg-config')
+else
+  gmodule = not_found
 endif
+
+# This workaround is required due to a bug in pkg-config file for glib as it
+# doesn't define GLIB_STATIC_COMPILATION for pkg-config --static
+if host_os == 'windows' and get_option('prefer_static')
+  glib_cflags += ['-DGLIB_STATIC_COMPILATION']
+endif
+
+# Sanity check that the current size_t matches the
+# size that glib thinks it should be. This catches
+# problems on multi-arch where people try to build
+# 32-bit QEMU while pointing at 64-bit glib headers
+
+if not cc.compiles('''
+  #include <glib.h>
+  #include <unistd.h>
+
+  #define QEMU_BUILD_BUG_ON(x) \
+  typedef char qemu_build_bug_on[(x)?-1:1] __attribute__((unused));
+
+  int main(void) {
+     QEMU_BUILD_BUG_ON(sizeof(size_t) != GLIB_SIZEOF_SIZE_T);
+     return 0;
+  }''', dependencies: glib_pc, args: glib_cflags)
+  error('''sizeof(size_t) doesn't match GLIB_SIZEOF_SIZE_T.
+        You probably need to set PKG_CONFIG_LIBDIR" to point
+        to the right pkg-config files for your build target.''')
+endif
+
+glib = declare_dependency(dependencies: [glib_pc, gmodule],
+                          compile_args: glib_cflags,
+                          version: glib_pc.version())
+elif glib_opt == 'internal'
+  assert(not glib.found())
+  add_global_arguments('-fPIC', language: 'c')
+  glib_proj = subproject('glib', required: true, default_options: [
+    'default_library=static',
+    'tests=false',
+    'selinux=disabled',
+    'libmount=disabled',
+    'man-pages=disabled',
+    'dtrace=disabled',
+    'systemtap=disabled',
+    'sysprof=disabled',
+    'nls=disabled',
+    'glib_debug=disabled',
+    'libelf=disabled',
+    'introspection=disabled',
+  ])
+  glib = glib_proj.get_variable('libglib_dep')
+  gmodule = glib_proj.get_variable('libgmodule_dep')
+endif
+
+# Check whether glib has gslice, which we have to avoid for correctness.
+# TODO: remove this check and the corresponding workaround (qtree) when
+# the minimum supported glib is >= 2.75.3
+glib_has_gslice = glib.version().version_compare('<2.75.3')
+
+# override glib dep to include the above refinements
+if glib_opt == 'system'
+meson.override_dependency('glib-2.0', glib)
+endif
+
+# The path to glib.h is added to all compilation commands.
+add_project_dependencies(glib.partial_dependency(compile_args: true, includes: true),
+                         native: false, language: all_languages)
+add_project_dependencies(gmodule.partial_dependency(compile_args: true, includes: true),
+                         native: false, language: all_languages)
 
 gio = not_found
 gdbus_codegen = not_found
