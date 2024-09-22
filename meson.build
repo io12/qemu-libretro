@@ -2738,7 +2738,7 @@ disassemblers = {
   'loongarch' : ['CONFIG_LOONGARCH_DIS'],
 }
 
-have_ivshmem = config_host_data.get('CONFIG_EVENTFD')
+have_ivshmem = false
 host_kconfig = \
   (get_option('fuzzing') ? ['CONFIG_FUZZ=y'] : []) + \
   (have_tpm ? ['CONFIG_TPM=y'] : []) + \
@@ -3669,6 +3669,10 @@ foreach target : target_dirs
   link_args = emulator_link_args
 
   config_target += config_host
+  if cc.has_header('android/log.h')
+    link_args += ['-llog']
+  endif
+
   target_inc = [include_directories('target' / config_target['TARGET_BASE_ARCH'])]
   if targetos == 'linux'
     target_inc += include_directories('linux-headers', is_system: true)
