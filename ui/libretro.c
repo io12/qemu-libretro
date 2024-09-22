@@ -10,6 +10,8 @@
 #include "qemu/osdep.h"
 #include "qemu/module.h"
 #include "qemu/main-loop.h"
+#include "qemu-main.h"
+#include "sysemu/sysemu.h"
 #include "ui/console.h"
 #include "ui/kbd-state.h"
 #include "audio/audio.h"
@@ -20,7 +22,6 @@
 		"-machine", "pcspk-audiodev=snd0", "-device",                  \
 		"AC97,audiodev=snd0"
 
-int main(int argc, const char *argv[]);
 void rcu_init(void);
 
 static const char *game_path;
@@ -384,7 +385,8 @@ static void start_qemu_with_args(const char *argv[])
 	}
 
 	rcu_init();
-	main(argc, argv);
+	qemu_init(argc, (char **)argv);
+	qemu_default_main();
 }
 
 static void *emu_thread_fn(void *arg)
