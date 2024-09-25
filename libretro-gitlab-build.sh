@@ -153,6 +153,7 @@ CFLAGS=-Wno-error ../configure \
     --enable-libretro \
     --audio-drv-list=libretro \
     --disable-sdl \
+    -Dwrap_mode=forcefallback \
     ${EXTRA_CONFIGURE_ARGS[@]+"${EXTRA_CONFIGURE_ARGS[@]}"}
 
 BUILD_OUT=libqemu-system-i386.$LIB_EXT
