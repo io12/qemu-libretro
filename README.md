@@ -14,7 +14,7 @@ Then run
 ```sh
 mkdir build
 cd build
-CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-fdt=internal --enable-libretro --audio-drv-list=libretro --disable-sdl -Dwrap_mode=forcefallback
+CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-fdt=internal --enable-libretro --audio-drv-list=libretro --disable-sdl -Dwrap_mode=forcefallback --enable-kvm
 make libqemu-system-i386.so
 ```
 
