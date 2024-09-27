@@ -396,21 +396,27 @@ static void *emu_thread_fn(void *arg)
 	g_free(game_dir);
 
 	if (!system_dir) {
+		error_report("failed finding libretro system directory");
 		return NULL;
 	}
 	qemu_add_data_dir(g_build_filename(system_dir, "qemu", NULL));
 
 	if (g_str_has_suffix(game_path, ".qemu_cmd_line")) {
 		char *cmd_line = NULL;
+		GError *error;
 		bool success =
-			g_file_get_contents(game_path, &cmd_line, NULL, NULL);
+			g_file_get_contents(game_path, &cmd_line, NULL, &error);
 		if (!success) {
+			error_report("failed reading file '%s':\n%s", game_path,
+				     error->message);
 			return NULL;
 		}
 		char **argv;
-		success = g_shell_parse_argv(cmd_line, NULL, &argv, NULL);
+		success = g_shell_parse_argv(cmd_line, NULL, &argv, &error);
 		g_free(cmd_line);
 		if (!success) {
+			error_report("failed parsing file '%s':\n%s", game_path,
+				     error->message);
 			return NULL;
 		}
 		start_qemu_with_args((const char **)argv);
@@ -421,6 +427,7 @@ static void *emu_thread_fn(void *arg)
 		start_qemu_with_args(
 			(const char *[]){ QEMU_CMD, game_path, NULL });
 	}
+	error_report("exited early");
 	return NULL;
 }
 
