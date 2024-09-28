@@ -21,7 +21,9 @@ case "$platform" in
     unix)
         pip install tomli
         LIB_EXT=so
-        EXTRA_CONFIGURE_ARGS=("--enable-kvm")
+        if [ "$(uname -m)" = "x86_64" ]; then
+            EXTRA_CONFIGURE_ARGS=("--enable-kvm")
+        fi
         ;;
     android-*)
         apt-get -y install ninja-build
