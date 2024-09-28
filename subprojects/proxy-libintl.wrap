@@ -1,0 +1,9 @@
+[wrap-git]
+directory = proxy-libintl
+url = https://github.com/frida/proxy-libintl.git
+revision = 0.4
+depth=1
+diff_files = proxy-libintl-static.patch
+
+[provide]
+intl = intl_dep
