@@ -241,10 +241,10 @@ static pthread_mutex_t av_info_lock = PTHREAD_MUTEX_INITIALIZER;
 static bool changed_av_info = false;
 static struct retro_system_av_info av_info = {
 	.geometry = {
-		.base_width = 1,
-		.base_height = 1,
-		.max_width = 1,
-		.max_height = 1,
+		.base_width = 100,
+		.base_height = 100,
+		.max_width = 100,
+		.max_height = 100,
 		.aspect_ratio = 0.0,
 	},
 	.timing = {
