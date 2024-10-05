@@ -119,7 +119,7 @@ case "$platform" in
         esac
         CLANG_CMD="clang -arch $ARCH -isysroot $IOSSDK"
         EXTRA_CONFIGURE_ARGS=(
-            "--enable-tcg-threaded-interpreter"
+            "--enable-tcg-interpreter"
             "--cross-prefix="
             "--cc=$CLANG_CMD"
             "--cxx=$CLANG_CMD"
