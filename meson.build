@@ -4139,6 +4139,7 @@ if libretro.found()
       input: emulator,
       output: prefixed_name,
       command: [
+        python,
         prefix_script,
         nm,
         objcopy,
