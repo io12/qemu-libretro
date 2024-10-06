@@ -13,7 +13,7 @@ fi
 
 if [ "$(uname -s)" = "Darwin" ]; then
     python3 -m pip install --user tomli ninja
-    EXTRA_PATH=$(echo ~/Library/Python/3.*/bin)
+    EXTRA_PATH=~/Library/Python/3.9/bin
     LIB_EXT=dylib
 fi
 
