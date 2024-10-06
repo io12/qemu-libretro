@@ -2,6 +2,13 @@
 
 set -eux
 
+# https://stackoverflow.com/a/3436177
+join() {
+    local IFS=$1
+    shift
+    echo "$*"
+}
+
 EXTRA_PATH=
 CORE_SUFFIX=libretro
 EXTRA_CONFIGURE_ARGS=()
@@ -13,7 +20,7 @@ fi
 
 if [ "$(uname -s)" = "Darwin" ]; then
     python3 -m pip install --user tomli ninja
-    EXTRA_PATH=~/Library/Python/3.9/bin
+    EXTRA_PATH=$(join ':' ~/Library/Python/3.*/bin)
     LIB_EXT=dylib
 fi
 
