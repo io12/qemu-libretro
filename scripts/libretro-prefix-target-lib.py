@@ -27,7 +27,9 @@ def main():
     args = ap.parse_args()
 
     pc = subprocess.run(
-        [args.nm, "-P", "-e", "-U", args.input], text=True, stdout=subprocess.PIPE
+        [args.nm, "-P", "-e", "--defined-only", args.input],
+        text=True,
+        stdout=subprocess.PIPE,
     )
     if pc.returncode != 0:
         sys.exit(1)
