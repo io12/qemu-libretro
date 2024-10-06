@@ -3649,7 +3649,7 @@ subdir('accel')
 subdir('plugins')
 subdir('ebpf')
 
-common_user_inc = [include_directories('libretro-common/include')]
+common_user_inc = []
 
 subdir('common-user')
 subdir('bsd-user')
@@ -4060,7 +4060,7 @@ foreach target : target_dirs
       exe_name += '-unsigned'
     endif
 
-    emulator = shared_library(exe_name, exe['sources'],
+    emulator = static_library(exe_name, exe['sources'],
                install: true,
                gnu_symbol_visibility: 'hidden',
                dependencies: arch_deps + exe['dependencies'],
@@ -4101,6 +4101,62 @@ foreach target : target_dirs
 
   endforeach
 endforeach
+
+if libretro.found()
+  retro_gen_h = ''
+  retro_gen_h += 'static void early_error_report(const char *fmt, ...);\n'
+  retro_gen_h += '#define CALL_QEMU_FUNC(fn, ...) ('
+  foreach target : target_dirs
+    if not target.endswith('-softmmu')
+      continue
+    endif
+    target_arch = target.split('-')[0]
+    prefixed_fn = 'G_PASTE(qemu_' + target_arch + '_, fn)'
+    prefixed_fn_call = 'extern typeof(fn) ' + prefixed_fn + ';'
+    prefixed_fn_call += prefixed_fn + '(__VA_ARGS__);'
+    retro_gen_h += '!strcmp(target_arch, "' + target_arch + '")'
+    retro_gen_h += ' ? ({'
+    retro_gen_h += prefixed_fn_call
+    retro_gen_h += '}) : '
+  endforeach
+  retro_gen_h += '({ early_error_report("unsupported architecture \'%s\'", target_arch); ' + prefixed_fn_call + ' })'
+  retro_gen_h += ')\n'
+  retro_gen_h = custom_target('retro-gen.h',
+    output: 'retro-gen.h',
+    capture: true,
+    command: ['printf', '%s', retro_gen_h],
+  )
+
+  objcopy = find_program(meson.get_external_property('objcopy', 'objcopy'))
+  prefix_script = find_program('scripts/libretro-prefix-target-lib.py')
+  libretro_core_parts = []
+  foreach name, emulator: emulators
+    if not name.startswith('qemu-system-')
+      continue
+    endif
+    prefixed_name = 'prefixed-' + name + '.a'
+    libretro_core_parts += custom_target(prefixed_name,
+      input: emulator,
+      output: prefixed_name,
+      command: [
+        prefix_script,
+        nm,
+        objcopy,
+        name.replace('qemu-system-', ''),
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+  endforeach
+
+  libretro_core = shared_library('qemu_libretro', ['ui/libretro.c', retro_gen_h] + libretro_core_parts,
+    dependencies: [glib, fdt],
+    include_directories: include_directories('libretro-common/include'),
+    install: true,
+    link_args: ['-Wl,--allow-multiple-definition', '-Wl,--whole-archive'],
+    gnu_symbol_visibility: 'hidden',
+  )
+endif
 
 # Other build targets
 
