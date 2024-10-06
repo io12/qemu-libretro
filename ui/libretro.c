@@ -4,7 +4,9 @@
 #include <string.h>
 #include <libgen.h>
 #include <pthread.h>
+#include <glib/gstdio.h>
 
+#include "retro-gen.h"
 #include "qemu/datadir.h"
 #include "qemu/osdep.h"
 #include "qemu/module.h"
@@ -17,15 +19,18 @@
 #include "audio/audio.h"
 #include "audio/audio_int.h"
 
+#define QEMU_CMD_PREFIX "qemu-system-"
+#define DEFAULT_ARCH "x86_64"
 #define QEMU_CMD                                                               \
-	"libretro-qemu", "-libretro", "-audiodev", "libretro,id=snd0",         \
-		"-machine", "pcspk-audiodev=snd0", "-device",                  \
-		"AC97,audiodev=snd0"
+	(QEMU_CMD_PREFIX DEFAULT_ARCH), "-libretro", "-audiodev",              \
+		"libretro,id=snd0", "-machine", "pcspk-audiodev=snd0",         \
+		"-device", "AC97,audiodev=snd0"
 
 void rcu_init(void);
 
 static const char *game_path;
 static const char *system_dir;
+static const char *target_arch;
 static pthread_t emu_thread;
 static DisplaySurface *surface;
 static QKbdState *kbd;
@@ -377,81 +382,183 @@ void retro_reset(void)
 {
 }
 
-static void start_qemu_with_args(const char *argv[])
+static void *audio_init(Audiodev *dev, Error **errp)
 {
-	int argc = 0;
-	while (argv[argc]) {
-		argc++;
-	}
-
-	rcu_init();
-	qemu_init(argc, (char **)argv);
-	qemu_default_main();
+	return dev;
 }
 
-static void *emu_thread_fn(void *arg)
+static void audio_fini(void *opaque)
 {
-	char *game_dir = g_path_get_dirname(game_path);
-	g_chdir(game_dir);
-	g_free(game_dir);
-
-	if (!system_dir) {
-		error_report("failed finding libretro system directory");
-		return NULL;
-	}
-	qemu_add_data_dir(g_build_filename(system_dir, "qemu", NULL));
-
-	if (g_str_has_suffix(game_path, ".qemu_cmd_line")) {
-		char *cmd_line = NULL;
-		GError *error;
-		bool success =
-			g_file_get_contents(game_path, &cmd_line, NULL, &error);
-		if (!success) {
-			error_report("failed reading file '%s':\n%s", game_path,
-				     error->message);
-			return NULL;
-		}
-		char **argv;
-		success = g_shell_parse_argv(cmd_line, NULL, &argv, &error);
-		g_free(cmd_line);
-		if (!success) {
-			error_report("failed parsing file '%s':\n%s", game_path,
-				     error->message);
-			return NULL;
-		}
-		start_qemu_with_args((const char **)argv);
-	} else if (g_str_has_suffix(game_path, ".iso")) {
-		start_qemu_with_args((const char *[]){ QEMU_CMD, "-cdrom",
-						       game_path, NULL });
-	} else {
-		start_qemu_with_args(
-			(const char *[]){ QEMU_CMD, game_path, NULL });
-	}
-	error_report("exited early");
-	return NULL;
 }
 
-size_t retro_serialize_size(void)
+static int audio_init_out(HWVoiceOut *hw, struct audsettings *as,
+			  void *drv_opaque)
 {
+	g_assert(as->fmt == AUDIO_FORMAT_S16);
+	g_assert(as->nchannels == 2);
+
+	pthread_mutex_lock(&av_info_lock);
+	av_info.timing.sample_rate = as->freq;
+	changed_av_info = true;
+	pthread_mutex_unlock(&av_info_lock);
+
+	CALL_QEMU_FUNC(audio_pcm_init_info, &hw->info, as);
+
+	hw->samples = 1024;
+
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	g_assert(!hw_voice_out);
+	hw_voice_out = hw;
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+
 	return 0;
 }
 
-bool retro_serialize(void *data, size_t size)
+static void audio_fini_out(HWVoiceOut *hw)
 {
-	return false;
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	g_assert(hw_voice_out == hw);
+	hw_voice_out = NULL;
+	pthread_mutex_unlock(&hw_voice_out_mutex);
 }
 
-bool retro_unserialize(const void *data, size_t size)
-{
-	return false;
-}
-
-void retro_cheat_reset(void)
+static void audio_enable_out(HWVoiceOut *hw, bool enable)
 {
 }
 
-void retro_cheat_set(unsigned index, bool enabled, const char *code)
+static size_t audio_write(HWVoiceOut *hw, void *buf, size_t size)
 {
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	size_t ret = CALL_QEMU_FUNC(audio_generic_write, hw, buf, size);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
+}
+
+static size_t audio_buffer_get_free(HWVoiceOut *hw)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	size_t ret = CALL_QEMU_FUNC(audio_generic_buffer_get_free, hw);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
+}
+
+static void *audio_get_buffer_out(HWVoiceOut *hw, size_t *size)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	void *ret = CALL_QEMU_FUNC(audio_generic_get_buffer_out, hw, size);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
+}
+
+static size_t audio_put_buffer_out(HWVoiceOut *hw, void *buf, size_t size)
+{
+	pthread_mutex_lock(&hw_voice_out_mutex);
+	size_t ret =
+		CALL_QEMU_FUNC(audio_generic_put_buffer_out, hw, buf, size);
+	pthread_mutex_unlock(&hw_voice_out_mutex);
+	return ret;
+}
+
+static void gfx_update(DisplayChangeListener *dcl, int x, int y, int w, int h)
+{
+}
+
+static void gfx_switch(DisplayChangeListener *dcl, DisplaySurface *new_surface)
+{
+	int w = surface_width(new_surface);
+	int h = surface_height(new_surface);
+	bool changed_resolution = !surface || !(surface_width(surface) == w &&
+						surface_height(surface) == h);
+	if (changed_resolution) {
+		pthread_mutex_lock(&av_info_lock);
+		av_info.geometry.base_width = av_info.geometry.max_width = w;
+		av_info.geometry.base_height = av_info.geometry.max_height = h;
+		changed_av_info = true;
+		pthread_mutex_unlock(&av_info_lock);
+	}
+	surface = new_surface;
+}
+
+static bool gfx_check_format(DisplayChangeListener *dcl,
+			     pixman_format_code_t format)
+{
+	return format == PIXMAN_x8r8g8b8;
+}
+
+static void refresh(DisplayChangeListener *dcl)
+{
+	CALL_QEMU_FUNC(graphic_hw_update, dcl->con);
+
+	switch_to_main_thread();
+
+	// Flush keyboard event queue
+	for (size_t i = 0; i < num_pending_keys; i++) {
+		CALL_QEMU_FUNC(qkbd_state_key_event, kbd,
+			       key_event_queue[i].key, key_event_queue[i].down);
+	}
+	num_pending_keys = 0;
+
+	// Update mouse
+	CALL_QEMU_FUNC(qemu_input_queue_rel, dcl->con, INPUT_AXIS_X, mouse_dx);
+	CALL_QEMU_FUNC(qemu_input_queue_rel, dcl->con, INPUT_AXIS_Y, mouse_dy);
+
+	// Update buttons
+	for (size_t i = 0; i < INPUT_BUTTON__MAX; i++) {
+		CALL_QEMU_FUNC(qemu_input_queue_btn, dcl->con, i,
+			       buttons_down[i]);
+	}
+
+	CALL_QEMU_FUNC(qemu_input_event_sync);
+}
+
+static DisplayChangeListener dcl = {
+	.ops = (DisplayChangeListenerOps[]){ {
+		.dpy_name = "libretro",
+		.dpy_gfx_update = gfx_update,
+		.dpy_gfx_switch = gfx_switch,
+		.dpy_gfx_check_format = gfx_check_format,
+		.dpy_refresh = refresh,
+	} },
+};
+
+static void display_init(DisplayState *ds, DisplayOptions *o)
+{
+	dcl.con = CALL_QEMU_FUNC(qemu_console_lookup_by_index, 0);
+	kbd = CALL_QEMU_FUNC(qkbd_state_init, dcl.con);
+	CALL_QEMU_FUNC(register_displaychangelistener, &dcl);
+}
+
+static QemuDisplay display = {
+	.type = DISPLAY_TYPE_LIBRETRO,
+	.init = display_init,
+};
+
+static struct audio_pcm_ops pcm_ops = {
+	.init_out = audio_init_out,
+	.fini_out = audio_fini_out,
+	.enable_out = audio_enable_out,
+	.write = audio_write,
+	.buffer_get_free = audio_buffer_get_free,
+	.get_buffer_out = audio_get_buffer_out,
+	.put_buffer_out = audio_put_buffer_out,
+};
+
+static struct audio_driver libretro_audio_driver = {
+	.name = "libretro",
+	.descr = "libretro https://www.libretro.com/",
+	.init = audio_init,
+	.fini = audio_fini,
+	.pcm_ops = &pcm_ops,
+	.max_voices_out = 1,
+	.max_voices_in = 0,
+	.voice_size_out = sizeof(HWVoiceOut),
+	.voice_size_in = 0,
+};
+
+static void register_libretro(void)
+{
+	CALL_QEMU_FUNC(qemu_display_register, &display);
+	CALL_QEMU_FUNC(audio_driver_register, &libretro_audio_driver);
 }
 
 static bool exited = false;
@@ -498,6 +605,111 @@ void vreport(report_type type, const char *fmt, va_list ap)
 	}
 }
 
+G_GNUC_PRINTF(1, 2)
+static void early_error_report(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vreport(REPORT_TYPE_ERROR, fmt, ap);
+	va_end(ap);
+}
+
+static void start_qemu_with_args(const char *argv[])
+{
+	int argc = 0;
+	while (argv[argc]) {
+		argc++;
+	}
+
+	if (!system_dir) {
+		early_error_report("failed finding libretro system directory");
+		return;
+	}
+	CALL_QEMU_FUNC(qemu_add_data_dir,
+		       g_build_filename(system_dir, "qemu", NULL));
+
+	CALL_QEMU_FUNC(register_module_init, register_libretro,
+		       MODULE_INIT_QOM);
+	CALL_QEMU_FUNC(rcu_init);
+	CALL_QEMU_FUNC(qemu_init, argc, (char **)argv);
+	CALL_QEMU_FUNC(qemu_default_main);
+}
+
+size_t retro_serialize_size(void)
+{
+	return 0;
+}
+
+bool retro_serialize(void *data, size_t size)
+{
+	return false;
+}
+
+bool retro_unserialize(const void *data, size_t size)
+{
+	return false;
+}
+
+void retro_cheat_reset(void)
+{
+}
+
+void retro_cheat_set(unsigned index, bool enabled, const char *code)
+{
+}
+
+static void *emu_thread_fn(void *arg)
+{
+	char *game_dir = g_path_get_dirname(game_path);
+	g_chdir(game_dir);
+	g_free(game_dir);
+
+	if (g_str_has_suffix(game_path, ".qemu_cmd_line")) {
+		char *cmd_line = NULL;
+		GError *error;
+		bool success =
+			g_file_get_contents(game_path, &cmd_line, NULL, &error);
+		if (!success) {
+			early_error_report("failed reading file '%s':\n%s",
+					   game_path, error->message);
+			return NULL;
+		}
+		char **argv;
+		success = g_shell_parse_argv(cmd_line, NULL, &argv, &error);
+		g_free(cmd_line);
+		if (!success) {
+			early_error_report("failed parsing file '%s':\n%s",
+					   game_path, error->message);
+			return NULL;
+		}
+		if (!argv[0]) {
+			early_error_report("empty command in file '%s'",
+					   game_path);
+			return NULL;
+		}
+		if (!g_str_has_prefix(argv[0], QEMU_CMD_PREFIX)) {
+			early_error_report(
+				"command must be of the form " QEMU_CMD_PREFIX
+				"ARCH, not '%s': '%s'",
+				argv[0], game_path);
+			return NULL;
+		}
+		target_arch = &argv[0][strlen(QEMU_CMD_PREFIX)];
+		start_qemu_with_args((const char **)argv);
+	} else if (g_str_has_suffix(game_path, ".iso")) {
+		target_arch = DEFAULT_ARCH;
+		start_qemu_with_args((const char *[]){ QEMU_CMD, "-cdrom",
+						       game_path, NULL });
+	} else {
+		target_arch = DEFAULT_ARCH;
+		start_qemu_with_args(
+			(const char *[]){ QEMU_CMD, game_path, NULL });
+	}
+	early_error_report("exited");
+	return NULL;
+}
+
 bool retro_load_game(const struct retro_game_info *game)
 {
 	if (!game) {
@@ -535,74 +747,6 @@ void *retro_get_memory_data(unsigned id)
 size_t retro_get_memory_size(unsigned id)
 {
 	return 0;
-}
-
-static void gfx_update(DisplayChangeListener *dcl, int x, int y, int w, int h)
-{
-}
-
-static void gfx_switch(DisplayChangeListener *dcl, DisplaySurface *new_surface)
-{
-	int w = surface_width(new_surface);
-	int h = surface_height(new_surface);
-	bool changed_resolution = !surface || !(surface_width(surface) == w &&
-						surface_height(surface) == h);
-	if (changed_resolution) {
-		pthread_mutex_lock(&av_info_lock);
-		av_info.geometry.base_width = av_info.geometry.max_width = w;
-		av_info.geometry.base_height = av_info.geometry.max_height = h;
-		changed_av_info = true;
-		pthread_mutex_unlock(&av_info_lock);
-	}
-	surface = new_surface;
-}
-
-static bool gfx_check_format(DisplayChangeListener *dcl,
-			     pixman_format_code_t format)
-{
-	return format == PIXMAN_x8r8g8b8;
-}
-
-static void refresh(DisplayChangeListener *dcl)
-{
-	graphic_hw_update(dcl->con);
-
-	switch_to_main_thread();
-
-	// Flush keyboard event queue
-	for (size_t i = 0; i < num_pending_keys; i++) {
-		qkbd_state_key_event(kbd, key_event_queue[i].key,
-				     key_event_queue[i].down);
-	}
-	num_pending_keys = 0;
-
-	// Update mouse
-	qemu_input_queue_rel(dcl->con, INPUT_AXIS_X, mouse_dx);
-	qemu_input_queue_rel(dcl->con, INPUT_AXIS_Y, mouse_dy);
-
-	// Update buttons
-	for (size_t i = 0; i < INPUT_BUTTON__MAX; i++) {
-		qemu_input_queue_btn(dcl->con, i, buttons_down[i]);
-	}
-
-	qemu_input_event_sync();
-}
-
-static DisplayChangeListener dcl = {
-	.ops = (DisplayChangeListenerOps[]){ {
-		.dpy_name = "libretro",
-		.dpy_gfx_update = gfx_update,
-		.dpy_gfx_switch = gfx_switch,
-		.dpy_gfx_check_format = gfx_check_format,
-		.dpy_refresh = refresh,
-	} },
-};
-
-static void display_init(DisplayState *ds, DisplayOptions *o)
-{
-	dcl.con = qemu_console_lookup_by_index(0);
-	kbd = qkbd_state_init(dcl.con);
-	register_displaychangelistener(&dcl);
 }
 
 void retro_run(void)
@@ -644,114 +788,3 @@ void retro_run(void)
 
 	cb_video_refresh(surface_data(surface), w, h, surface_stride(surface));
 }
-
-static void *audio_init(Audiodev *dev, Error **errp)
-{
-	return dev;
-}
-
-static void audio_fini(void *opaque)
-{
-}
-
-static int audio_init_out(HWVoiceOut *hw, struct audsettings *as,
-			  void *drv_opaque)
-{
-	g_assert(as->fmt == AUDIO_FORMAT_S16);
-	g_assert(as->nchannels == 2);
-
-	pthread_mutex_lock(&av_info_lock);
-	av_info.timing.sample_rate = as->freq;
-	changed_av_info = true;
-	pthread_mutex_unlock(&av_info_lock);
-
-	audio_pcm_init_info(&hw->info, as);
-
-	hw->samples = 1024;
-
-	pthread_mutex_lock(&hw_voice_out_mutex);
-	g_assert(!hw_voice_out);
-	hw_voice_out = hw;
-	pthread_mutex_unlock(&hw_voice_out_mutex);
-
-	return 0;
-}
-
-static void audio_fini_out(HWVoiceOut *hw)
-{
-	pthread_mutex_lock(&hw_voice_out_mutex);
-	g_assert(hw_voice_out == hw);
-	hw_voice_out = NULL;
-	pthread_mutex_unlock(&hw_voice_out_mutex);
-}
-
-static void audio_enable_out(HWVoiceOut *hw, bool enable)
-{
-}
-
-static size_t audio_write(HWVoiceOut *hw, void *buf, size_t size)
-{
-	pthread_mutex_lock(&hw_voice_out_mutex);
-	size_t ret = audio_generic_write(hw, buf, size);
-	pthread_mutex_unlock(&hw_voice_out_mutex);
-	return ret;
-}
-
-static size_t audio_buffer_get_free(HWVoiceOut *hw)
-{
-	pthread_mutex_lock(&hw_voice_out_mutex);
-	size_t ret = audio_generic_buffer_get_free(hw);
-	pthread_mutex_unlock(&hw_voice_out_mutex);
-	return ret;
-}
-
-static void *audio_get_buffer_out(HWVoiceOut *hw, size_t *size)
-{
-	pthread_mutex_lock(&hw_voice_out_mutex);
-	void *ret = audio_generic_get_buffer_out(hw, size);
-	pthread_mutex_unlock(&hw_voice_out_mutex);
-	return ret;
-}
-
-static size_t audio_put_buffer_out(HWVoiceOut *hw, void *buf, size_t size)
-{
-	pthread_mutex_lock(&hw_voice_out_mutex);
-	size_t ret = audio_generic_put_buffer_out(hw, buf, size);
-	pthread_mutex_unlock(&hw_voice_out_mutex);
-	return ret;
-}
-
-static QemuDisplay display = {
-	.type = DISPLAY_TYPE_LIBRETRO,
-	.init = display_init,
-};
-
-static struct audio_pcm_ops pcm_ops = {
-	.init_out = audio_init_out,
-	.fini_out = audio_fini_out,
-	.enable_out = audio_enable_out,
-	.write = audio_write,
-	.buffer_get_free = audio_buffer_get_free,
-	.get_buffer_out = audio_get_buffer_out,
-	.put_buffer_out = audio_put_buffer_out,
-};
-
-static struct audio_driver libretro_audio_driver = {
-	.name = "libretro",
-	.descr = "libretro https://www.libretro.com/",
-	.init = audio_init,
-	.fini = audio_fini,
-	.pcm_ops = &pcm_ops,
-	.max_voices_out = 1,
-	.max_voices_in = 0,
-	.voice_size_out = sizeof(HWVoiceOut),
-	.voice_size_in = 0,
-};
-
-static void register_libretro(void)
-{
-	qemu_display_register(&display);
-	audio_driver_register(&libretro_audio_driver);
-}
-
-type_init(register_libretro);

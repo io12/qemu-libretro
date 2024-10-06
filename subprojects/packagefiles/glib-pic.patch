@@ -1,0 +1,22 @@
+diff --color -ru a/glib/meson.build b/glib/meson.build
+--- a/glib/meson.build	2024-08-02 07:41:55.000000000 -0400
++++ b/glib/meson.build	2024-10-09 19:03:58.845638869 -0400
+@@ -410,6 +410,7 @@
+ glib_c_args = ['-DG_LOG_DOMAIN="GLib"'] + glib_c_args_internal + pcre2_static_args
+ libglib = library('glib-2.0',
+   glib_dtrace_obj, glib_dtrace_hdr,
++  pic : true,
+   sources : [glib_deprecated_sources, glib_sources],
+   version : library_version,
+   soversion : soversion,
+diff --color -ru a/gmodule/meson.build b/gmodule/meson.build
+--- a/gmodule/meson.build	2024-08-02 07:41:55.000000000 -0400
++++ b/gmodule/meson.build	2024-10-09 19:04:25.444375802 -0400
+@@ -95,6 +95,7 @@
+   version : library_version,
+   soversion : soversion,
+   darwin_versions : darwin_versions,
++  pic : true,
+   install : true,
+   include_directories : [configinc, gmoduleinc],
+   dependencies : [libdl_dep, libglib_dep],

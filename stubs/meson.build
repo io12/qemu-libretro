@@ -9,7 +9,6 @@ stub_ss.add(files('iothread-lock.c'))
 stub_ss.add(files('is-daemonized.c'))
 stub_ss.add(files('monitor-core.c'))
 stub_ss.add(files('replay-mode.c'))
-stub_ss.add(files('trace-control.c'))
 
 if have_block
   stub_ss.add(files('bdrv-next-monitor-owned.c'))
@@ -18,7 +17,6 @@ if have_block
   stub_ss.add(files('blockdev-close-all-bdrv-states.c'))
   stub_ss.add(files('change-state-handler.c'))
   stub_ss.add(files('get-vm-name.c'))
-  stub_ss.add(files('iothread-lock-block.c'))
   stub_ss.add(files('migr-blocker.c'))
   stub_ss.add(files('physmem.c'))
   stub_ss.add(files('ram-block.c'))
@@ -27,10 +25,8 @@ if have_block
 endif
 
 if have_block or have_ga
-  stub_ss.add(files('replay-tools.c'))
   # stubs for hooks in util/main-loop.c, util/async.c etc.
   stub_ss.add(files('cpus-virtual-clock.c'))
-  stub_ss.add(files('icount.c'))
   stub_ss.add(files('graph-lock.c'))
   if linux_io_uring.found()
     stub_ss.add(files('io_uring.c'))
@@ -38,10 +34,8 @@ if have_block or have_ga
   if libaio.found()
     stub_ss.add(files('linux-aio.c'))
   endif
-  stub_ss.add(files('qemu-timer-notify-cb.c'))
 
   # stubs for monitor
-  stub_ss.add(files('monitor-internal.c'))
   stub_ss.add(files('qmp-command-available.c'))
   stub_ss.add(files('qmp-quit.c'))
 endif

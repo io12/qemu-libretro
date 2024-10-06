@@ -32,7 +32,7 @@ case "$platform" in
         fi
         ;;
     android-*)
-        apt-get -y install ninja-build
+        apt-get -y install ninja-build flex bison libglib2.0-dev
         pip install tomli
         EXTRA_PATH=$ANDROID_NDK_LLVM/bin
         CORE_SUFFIX=libretro_android
@@ -151,9 +151,8 @@ rm -rf build
 mkdir build
 cd build
 
-CFLAGS=-Wno-error ../configure \
+CFLAGS="-Os -Wno-error -Wno-nested-externs -Wno-redundant-decls" ../configure \
     --without-default-features \
-    --target-list=i386-softmmu \
     --glib=internal \
     --zlib=internal \
     --disable-pie \
@@ -166,6 +165,6 @@ CFLAGS=-Wno-error ../configure \
     -Dwrap_mode=forcefallback \
     ${EXTRA_CONFIGURE_ARGS[@]+"${EXTRA_CONFIGURE_ARGS[@]}"}
 
-BUILD_OUT=libqemu-system-i386.$LIB_EXT
+BUILD_OUT=libqemu_libretro.$LIB_EXT
 make -j$NUMPROC $BUILD_OUT
 cp $BUILD_OUT ../qemu_$CORE_SUFFIX.$LIB_EXT

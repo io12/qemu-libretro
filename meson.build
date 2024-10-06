@@ -3553,16 +3553,21 @@ event_loop_base = declare_dependency(objects: event_loop_base.extract_all_object
 
 stub_ss = stub_ss.apply({})
 
+libstub = static_library('stub',
+                         pic: true,
+                         gnu_symbol_visibility: 'hidden',
+                         sources: stub_ss.sources() + genh)
+
 util_ss.add_all(trace_ss)
 util_ss = util_ss.apply({})
 libqemuutil = static_library('qemuutil',
                              pic: true,
                              gnu_symbol_visibility: 'hidden',
                              build_by_default: false,
-                             sources: util_ss.sources() + stub_ss.sources() + genh,
+                             sources: util_ss.sources() + genh,
                              dependencies: [util_ss.dependencies(), libm, threads, glib, gmodule, socket, malloc])
 qemuutil = declare_dependency(link_with: libqemuutil,
-                              sources: genh + version_res,
+                              sources: genh,
                               dependencies: [event_loop_base])
 
 if have_system or have_user
@@ -3649,7 +3654,7 @@ subdir('accel')
 subdir('plugins')
 subdir('ebpf')
 
-common_user_inc = [include_directories('libretro-common/include')]
+common_user_inc = []
 
 subdir('common-user')
 subdir('bsd-user')
@@ -3913,6 +3918,16 @@ if host_os == 'darwin'
   entitlement = find_program('scripts/entitlement.sh')
 endif
 
+libretro_core_deps = [util_ss.dependencies(), fdt, libm, threads, glib, gmodule, socket, malloc]
+if get_option('tcg_interpreter')
+  libretro_core_deps += dependency(
+    'libffi',
+    version: '>=3.0',
+    required: true,
+    method: 'pkg-config'
+  )
+endif
+
 traceable = []
 emulators = {}
 foreach target : target_dirs
@@ -4060,13 +4075,20 @@ foreach target : target_dirs
       exe_name += '-unsigned'
     endif
 
-    emulator = shared_library(exe_name, exe['sources'],
+    emulator = static_library(exe_name, exe['sources'],
                install: true,
                gnu_symbol_visibility: 'hidden',
                dependencies: arch_deps + exe['dependencies'],
                objects: lib.extract_all_objects(recursive: true),
                link_depends: [block_syms, qemu_syms],
                link_args: link_args)
+
+    foreach dep: arch_deps + exe['dependencies']
+      libretro_core_deps += dep.partial_dependency(
+        link_args: true,
+        includes: true,
+      )
+    endforeach
 
     if host_os == 'darwin'
       icon = 'pc-bios/qemu.rsrc'
@@ -4101,6 +4123,63 @@ foreach target : target_dirs
 
   endforeach
 endforeach
+
+if libretro.found()
+  retro_gen_h = ''
+  retro_gen_h += 'static void early_error_report(const char *fmt, ...);\n'
+  retro_gen_h += '#define CALL_QEMU_FUNC(fn, ...) ('
+  foreach target : target_dirs
+    if not target.endswith('-softmmu')
+      continue
+    endif
+    target_arch = target.split('-')[0]
+    prefixed_fn = 'G_PASTE(qemu_' + target_arch + '_, fn)'
+    prefixed_fn_call = 'extern typeof(fn) ' + prefixed_fn + ';'
+    prefixed_fn_call += prefixed_fn + '(__VA_ARGS__);'
+    retro_gen_h += '!strcmp(target_arch, "' + target_arch + '")'
+    retro_gen_h += ' ? ({'
+    retro_gen_h += prefixed_fn_call
+    retro_gen_h += '}) : '
+  endforeach
+  retro_gen_h += '({ early_error_report("unsupported architecture \'%s\'", target_arch); ' + prefixed_fn_call + ' })'
+  retro_gen_h += ')\n'
+  retro_gen_h = custom_target('retro-gen.h',
+    output: 'retro-gen.h',
+    capture: true,
+    command: ['printf', '%s', retro_gen_h],
+  )
+
+  objcopy = find_program(meson.get_external_property('objcopy', 'objcopy'))
+  prefix_script = find_program('scripts/libretro-prefix-target-lib.py')
+  libretro_core_parts = []
+  foreach name, emulator: emulators
+    if not name.startswith('qemu-system-')
+      continue
+    endif
+    prefixed_name = 'prefixed-' + name + '.a'
+    libretro_core_parts += custom_target(prefixed_name,
+      input: emulator,
+      output: prefixed_name,
+      command: [
+        python,
+        prefix_script,
+        nm,
+        objcopy,
+        name.replace('qemu-system-', ''),
+        '@INPUT@',
+        '@OUTPUT@',
+      ],
+    )
+  endforeach
+
+  libretro_core = shared_library('qemu_libretro', ['ui/libretro.c', retro_gen_h] + libretro_core_parts + genh,
+    dependencies: libretro_core_deps,
+    include_directories: include_directories('libretro-common/include'),
+    link_whole: libretro_core_parts + libstub,
+    install: true,
+    gnu_symbol_visibility: 'hidden',
+  )
+endif
 
 # Other build targets
 
