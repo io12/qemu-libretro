@@ -2,7 +2,7 @@ diff --git a/meson.build b/meson.build
 index 957bf18..b213b5b 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -11,11 +11,9 @@ endif
+@@ -11,11 +11,10 @@ endif
  
  install_headers('libintl.h')
  
@@ -12,6 +12,7 @@ index 957bf18..b213b5b 100644
    c_args: ['-DSTUB_ONLY'],
 -  soversion : 8,
 -  darwin_versions : ['10', '10.5'],
++  pic : true,
    install : true)
  
  c_args = []

@@ -1,0 +1,11 @@
+diff -r -u a/glib/meson.build b/glib/meson.build
+--- a/glib/meson.build	2024-08-02 07:41:55.000000000 -0400
++++ b/glib/meson.build	2024-09-30 22:59:20.811656650 -0400
+@@ -410,6 +410,7 @@
+ glib_c_args = ['-DG_LOG_DOMAIN="GLib"'] + glib_c_args_internal + pcre2_static_args
+ libglib = library('glib-2.0',
+   glib_dtrace_obj, glib_dtrace_hdr,
++  pic : true,
+   sources : [glib_deprecated_sources, glib_sources],
+   version : library_version,
+   soversion : soversion,
