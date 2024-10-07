@@ -40,7 +40,13 @@ def main():
     syms_file.flush()
 
     pc = subprocess.run(
-        [args.objcopy, f"--redefine-syms={syms_file.name}", args.input, args.output]
+        [
+            args.objcopy,
+            f"--redefine-syms={syms_file.name}",
+            "--strip-all",
+            args.input,
+            args.output,
+        ]
     )
     if pc.returncode != 0:
         sys.exit(1)
