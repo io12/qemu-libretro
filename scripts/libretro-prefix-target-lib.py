@@ -21,6 +21,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("nm")
     ap.add_argument("objcopy")
+    ap.add_argument("strip")
     ap.add_argument("target")
     ap.add_argument("input")
     ap.add_argument("output")
@@ -40,14 +41,12 @@ def main():
     syms_file.flush()
 
     pc = subprocess.run(
-        [
-            args.objcopy,
-            f"--redefine-syms={syms_file.name}",
-            "--strip-all",
-            args.input,
-            args.output,
-        ]
+        [args.objcopy, f"--redefine-syms={syms_file.name}", args.input, args.output]
     )
+    if pc.returncode != 0:
+        sys.exit(1)
+
+    pc = subprocess.run([args.strip, args.output])
     if pc.returncode != 0:
         sys.exit(1)
 

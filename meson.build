@@ -4128,6 +4128,7 @@ if libretro.found()
   )
 
   objcopy = find_program(meson.get_external_property('objcopy', 'objcopy'))
+  strip = find_program(meson.get_external_property('strip', 'strip'))
   prefix_script = find_program('scripts/libretro-prefix-target-lib.py')
   libretro_core_parts = []
   foreach name, emulator: emulators
@@ -4143,6 +4144,7 @@ if libretro.found()
         prefix_script,
         nm,
         objcopy,
+        strip,
         name.replace('qemu-system-', ''),
         '@INPUT@',
         '@OUTPUT@',
