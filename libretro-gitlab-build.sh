@@ -26,7 +26,7 @@ case "$platform" in
         fi
         ;;
     android-*)
-        apt-get -y install ninja-build flex bison
+        apt-get -y install ninja-build flex bison libglib2.0-dev
         pip install tomli
         EXTRA_PATH=$ANDROID_NDK_LLVM/bin
         CORE_SUFFIX=libretro_android
