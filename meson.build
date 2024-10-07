@@ -4151,10 +4151,11 @@ if libretro.found()
   endforeach
 
   libretro_core = shared_library('qemu_libretro', ['ui/libretro.c', retro_gen_h] + libretro_core_parts,
-    dependencies: [glib, fdt],
+    dependencies: [glib, fdt, util],
     include_directories: include_directories('libretro-common/include'),
+    link_whole: libretro_core_parts,
     install: true,
-    link_args: ['-Wl,--allow-multiple-definition', '-Wl,--whole-archive'],
+    link_args: ['-Wl,--allow-multiple-definition'],
     gnu_symbol_visibility: 'hidden',
   )
 endif
