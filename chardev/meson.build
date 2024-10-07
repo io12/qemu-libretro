@@ -18,7 +18,7 @@ if host_os == 'windows'
     'char-win-stdio.c',
     'char-win.c',
   ))
-else
+elif not libretro.found()
   chardev_ss.add(files(
       'char-fd.c',
       'char-parallel.c',
