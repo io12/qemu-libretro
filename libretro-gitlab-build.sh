@@ -145,7 +145,7 @@ rm -rf build
 mkdir build
 cd build
 
-CFLAGS=-Wno-error ../configure \
+CFLAGS="-Wno-error -Wno-nested-externs" ../configure \
     --without-default-features \
     --glib=internal \
     --zlib=internal \
