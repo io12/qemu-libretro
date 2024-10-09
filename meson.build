@@ -3913,6 +3913,7 @@ if host_os == 'darwin'
   entitlement = find_program('scripts/entitlement.sh')
 endif
 
+libretro_core_deps = [util_ss.dependencies(), fdt, libm, threads, glib, gmodule, socket, malloc]
 traceable = []
 emulators = {}
 foreach target : target_dirs
@@ -4068,6 +4069,13 @@ foreach target : target_dirs
                link_depends: [block_syms, qemu_syms],
                link_args: link_args)
 
+    foreach dep: arch_deps + exe['dependencies']
+      libretro_core_deps += dep.partial_dependency(
+        link_args: true,
+        includes: true,
+      )
+    endforeach
+
     if host_os == 'darwin'
       icon = 'pc-bios/qemu.rsrc'
       build_input = [emulator, files(icon)]
@@ -4151,7 +4159,7 @@ if libretro.found()
   endforeach
 
   libretro_core = shared_library('qemu_libretro', ['ui/libretro.c', retro_gen_h] + libretro_core_parts,
-    dependencies: [glib, fdt, util],
+    dependencies: libretro_core_deps,
     include_directories: include_directories('libretro-common/include'),
     link_whole: libretro_core_parts,
     install: true,

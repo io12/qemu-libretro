@@ -4,6 +4,7 @@
 #include <string.h>
 #include <libgen.h>
 #include <pthread.h>
+#include <glib/gstdio.h>
 
 #include "retro-gen.h"
 #include "qemu/datadir.h"
