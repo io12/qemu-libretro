@@ -10,10 +10,11 @@ def make_substs(stdout, target):
     ret = set()
     for line in stdout.splitlines():
         tokens = line.split()
-        if len(tokens) >= 2:
-            # if tokens[1] != "T":
-            #     continue
-            ret.add(f"{tokens[0]} qemu_{target}_{tokens[0]}\n")
+        if len(tokens) >= 2 and not tokens[0].startswith("."):
+            if tokens[0].startswith("_"):
+                ret.add(f"{tokens[0]} _qemu_{target}_{tokens[0][1:]}\n")
+            else:
+                ret.add(f"{tokens[0]} qemu_{target}_{tokens[0]}\n")
     return ret
 
 
