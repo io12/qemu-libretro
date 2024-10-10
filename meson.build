@@ -4158,7 +4158,7 @@ if libretro.found()
     )
   endforeach
 
-  libretro_core = shared_library('qemu_libretro', ['ui/libretro.c', retro_gen_h] + libretro_core_parts,
+  libretro_core = shared_library('qemu_libretro', ['ui/libretro.c', retro_gen_h] + libretro_core_parts + genh,
     dependencies: libretro_core_deps,
     include_directories: include_directories('libretro-common/include'),
     link_whole: libretro_core_parts,
