@@ -11,25 +11,21 @@
 #include "block/aio.h"
 #include "block/raw-aio.h"
 
-__attribute__((weak))
 void luring_detach_aio_context(LuringState *s, AioContext *old_context)
 {
     abort();
 }
 
-__attribute__((weak))
 void luring_attach_aio_context(LuringState *s, AioContext *new_context)
 {
     abort();
 }
 
-__attribute__((weak))
 LuringState *luring_init(Error **errp)
 {
     abort();
 }
 
-__attribute__((weak))
 void luring_cleanup(LuringState *s)
 {
     abort();

@@ -11,13 +11,11 @@
 #include "trace/control.h"
 
 
-__attribute__((weak))
 void trace_event_set_state_dynamic_init(TraceEvent *ev, bool state)
 {
     trace_event_set_state_dynamic(ev, state);
 }
 
-__attribute__((weak))
 void trace_event_set_state_dynamic(TraceEvent *ev, bool state)
 {
     bool state_pre;

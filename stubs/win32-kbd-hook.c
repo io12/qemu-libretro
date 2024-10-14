@@ -9,12 +9,10 @@
 #include "qemu/osdep.h"
 #include "ui/win32-kbd-hook.h"
 
-__attribute__((weak))
 void win32_kbd_set_window(void *hwnd)
 {
 }
 
-__attribute__((weak))
 void win32_kbd_set_grab(bool grab)
 {
 }

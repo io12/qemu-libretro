@@ -15,7 +15,6 @@
 #include "qemu/osdep.h"
 #include "qapi/qapi-events-qdev.h"
 
-__attribute__((weak))
 void qapi_event_send_device_deleted(const char *device,
                                     const char *path)
 {

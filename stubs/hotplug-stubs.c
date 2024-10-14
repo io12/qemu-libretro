@@ -14,13 +14,11 @@
 #include "qemu/osdep.h"
 #include "hw/qdev-core.h"
 
-__attribute__((weak))
 HotplugHandler *qdev_get_hotplug_handler(DeviceState *dev)
 {
     return NULL;
 }
 
-__attribute__((weak))
 void hotplug_handler_pre_plug(HotplugHandler *plug_handler,
                               DeviceState *plugged_dev,
                               Error **errp)
@@ -28,7 +26,6 @@ void hotplug_handler_pre_plug(HotplugHandler *plug_handler,
     g_assert_not_reached();
 }
 
-__attribute__((weak))
 void hotplug_handler_plug(HotplugHandler *plug_handler,
                           DeviceState *plugged_dev,
                           Error **errp)

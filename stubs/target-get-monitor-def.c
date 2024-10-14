@@ -23,7 +23,6 @@
 
 int target_get_monitor_def(CPUState *cs, const char *name, uint64_t *pval);
 
-__attribute__((weak))
 int target_get_monitor_def(CPUState *cs, const char *name, uint64_t *pval)
 {
     return -1;

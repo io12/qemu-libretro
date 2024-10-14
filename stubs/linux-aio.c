@@ -11,25 +11,21 @@
 #include "block/aio.h"
 #include "block/raw-aio.h"
 
-__attribute__((weak))
 void laio_detach_aio_context(LinuxAioState *s, AioContext *old_context)
 {
     abort();
 }
 
-__attribute__((weak))
 void laio_attach_aio_context(LinuxAioState *s, AioContext *new_context)
 {
     abort();
 }
 
-__attribute__((weak))
 LinuxAioState *laio_init(Error **errp)
 {
     abort();
 }
 
-__attribute__((weak))
 void laio_cleanup(LinuxAioState *s)
 {
     abort();

@@ -10,41 +10,34 @@
 #include "hw/xen/xen.h"
 #include "hw/xen/xen-x86.h"
 
-__attribute__((weak))
 int xen_pci_slot_get_pirq(PCIDevice *pci_dev, int irq_num)
 {
     return -1;
 }
 
-__attribute__((weak))
 void xen_intx_set_irq(void *opaque, int irq_num, int level)
 {
 }
 
-__attribute__((weak))
 int xen_set_pci_link_route(uint8_t link, uint8_t irq)
 {
     return -1;
 }
 
-__attribute__((weak))
 int xen_is_pirq_msi(uint32_t msi_data)
 {
     return 0;
 }
 
-__attribute__((weak))
 qemu_irq *xen_interrupt_controller_init(void)
 {
     return NULL;
 }
 
-__attribute__((weak))
 void xen_register_framebuffer(MemoryRegion *mr)
 {
 }
 
-__attribute__((weak))
 void xen_hvm_init_pc(PCMachineState *pcms, MemoryRegion **ram_memory)
 {
 }
