@@ -2,6 +2,7 @@
 #include "qapi/qapi-commands-machine.h"
 #include "qemu/uuid.h"
 
+__attribute__((weak))
 UuidInfo *qmp_query_uuid(Error **errp)
 {
     UuidInfo *info = g_malloc0(sizeof(*info));

@@ -12,4 +12,5 @@
 #include "sysemu/qtest.h"
 
 /* Needed for qtest_allowed() */
+__attribute__((weak))
 bool qtest_allowed;

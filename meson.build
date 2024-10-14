@@ -4163,7 +4163,6 @@ if libretro.found()
     include_directories: include_directories('libretro-common/include'),
     link_whole: libretro_core_parts,
     install: true,
-    link_args: ['-Wl,--allow-multiple-definition'],
     gnu_symbol_visibility: 'hidden',
   )
 endif

@@ -14,12 +14,14 @@
 #include "qemu/osdep.h"
 #include "sysemu/dump-arch.h"
 
+__attribute__((weak))
 int cpu_get_dump_info(ArchDumpInfo *info,
                       const struct GuestPhysBlockList *guest_phys_blocks)
 {
     return -1;
 }
 
+__attribute__((weak))
 ssize_t cpu_get_note_size(int class, int machine, int nr_cpus)
 {
     return -1;
