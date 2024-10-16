@@ -146,7 +146,6 @@ mkdir build
 cd build
 
 CFLAGS="-Wno-error -Wno-nested-externs -Wno-redundant-decls" ../configure \
-    --target-list="m68k-softmmu ppc64-softmmu x86_64-softmmu" \
     --without-default-features \
     --glib=internal \
     --zlib=internal \
