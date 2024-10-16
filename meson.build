@@ -3562,7 +3562,7 @@ libqemuutil = static_library('qemuutil',
                              sources: util_ss.sources() + stub_ss.sources() + genh,
                              dependencies: [util_ss.dependencies(), libm, threads, glib, gmodule, socket, malloc])
 qemuutil = declare_dependency(link_with: libqemuutil,
-                              sources: genh + version_res,
+                              sources: genh,
                               dependencies: [event_loop_base])
 
 if have_system or have_user
