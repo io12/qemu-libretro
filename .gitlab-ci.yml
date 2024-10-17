@@ -43,8 +43,8 @@ include:
     file: '/linux-x64.yml'
 
   # Linux 32-bit
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/linux-i686.yml'
+  # - project: 'libretro-infrastructure/ci-templates'
+  #   file: '/linux-i686.yml'
 
   # MacOS PowerPC 32-bit
   - project: 'libretro-infrastructure/ci-templates'
@@ -183,10 +183,10 @@ libretro-build-linux-x64:
     - .core-defs
 
 # Linux 32-bit
-libretro-build-linux-i686:
-  extends:
-    - .libretro-linux-i686-make-default
-    - .core-defs
+# libretro-build-linux-i686:
+#   extends:
+#     - .libretro-linux-i686-make-default
+#     - .core-defs
 
 # MacOS 64-bit
 libretro-build-osx-x64:
