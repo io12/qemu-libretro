@@ -1,0 +1,23 @@
+diff --git a/src/meson.build b/src/meson.build
+index 1ac3b26..b2e910e 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -93,17 +93,10 @@ if get_option('ffi-build-versioned') and cc.has_argument('-x assembler-with-cpp'
+   endif
+ endif
+ 
+-ffi_lib = library('ffi', ffi_c_sources, ffi_asm_sources,
++ffi_lib = static_library('ffi', ffi_c_sources, ffi_asm_sources,
+   c_args : '-DTARGET=' + TARGET,
+   include_directories : ffiinc,
+   link_args: ffi_link_args,
+-  # Taken from the libtool-version file
+-  # current - age . age . revision
+-  version : '7.1.0',
+-  # current - age
+-  soversion : '7',
+-  # current + 1
+-  darwin_versions : '9',
+   install : true)
+ 
+ pkgconf = import('pkgconfig')
