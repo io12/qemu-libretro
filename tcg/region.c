@@ -710,7 +710,7 @@ static int alloc_code_gen_buffer(size_t size, int splitwx, Error **errp)
      */
     prot = PROT_NONE;
     flags = MAP_PRIVATE | MAP_ANONYMOUS;
-#ifdef CONFIG_DARWIN
+#if defined(CONFIG_DARWIN) && !defined(CONFIG_TCG_INTERPRETER)
     /* Applicable to both iOS and macOS (Apple Silicon). */
     if (!splitwx) {
         flags |= MAP_JIT;
