@@ -19,7 +19,6 @@ if command -v apt-get &> /dev/null; then
 fi
 
 if [ "$(uname -s)" = "Darwin" ]; then
-    python3 -m pip install --user tomli ninja
     EXTRA_PATH=$(join ':' ~/Library/Python/3.*/bin)
     LIB_EXT=dylib
 fi
