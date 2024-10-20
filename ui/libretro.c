@@ -237,7 +237,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
 	memset(info, 0, sizeof(*info));
 	info->need_fullpath = true;
-	info->valid_extensions = "txt|iso|img|qcow|qcow2";
+	info->valid_extensions = "qemu_cmd_line|iso|img|qcow|qcow2";
 	info->library_version = "0.1.0";
 	info->library_name = "qemu";
 }
