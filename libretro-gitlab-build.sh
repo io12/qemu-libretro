@@ -152,6 +152,7 @@ mkdir build
 cd build
 
 CFLAGS="-Os -Wno-error -Wno-nested-externs -Wno-redundant-decls" ../configure \
+    --target-list="aarch64-softmmu alpha-softmmu arm-softmmu i386-softmmu m68k-softmmu mips64el-softmmu mips64-softmmu mipsel-softmmu mips-softmmu ppc64-softmmu ppc-softmmu riscv32-softmmu riscv64-softmmu s390x-softmmu sparc64-softmmu sparc-softmmu x86_64-softmmu" \
     --without-default-features \
     --glib=internal \
     --zlib=internal \
