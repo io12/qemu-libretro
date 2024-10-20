@@ -84,13 +84,23 @@ The core interprets relative paths as relative to the directory containing the `
 ## Compile instructions (Ubuntu)
 
 ```sh
-sudo apt-get install build-essential python3 python3-venv ninja-build flex bison
+sudo apt-get install build-essential python3 python3-venv ninja-build flex bison zlib1g-dev
 git clone --recursive https://github.com/io12/qemu-libretro
 cd qemu-libretro
-./zlib/configure
 mkdir build
 cd build
-CFLAGS=-Wno-error ../configure --without-default-features --target-list=i386-softmmu --glib=internal --zlib=internal --disable-pie --enable-fdt=internal --enable-libretro --audio-drv-list=libretro --disable-sdl -Dwrap_mode=forcefallback --enable-kvm
+CFLAGS="-Os -Wno-error -Wno-nested-externs -Wno-redundant-decls" ../configure \
+    --without-default-features \
+    --glib=internal \
+    --zlib=internal \
+    --disable-pie \
+    --enable-fdt=internal \
+    --disable-modules \
+    --disable-plugins \
+    --enable-libretro \
+    --audio-drv-list=libretro \
+    --disable-sdl \
+    -Dwrap_mode=forcefallback
 make -j$(nproc) libqemu_libretro.so
 ```
 
