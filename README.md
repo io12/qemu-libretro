@@ -15,7 +15,7 @@ and it will be run with the command
 qemu-system-x86_64 -audiodev libretro,id=snd0 -machine pcspk-audiodev=snd0 -device AC97,audiodev=snd0 PATH_TO_OPENED_FILE
 ```
 
-If you need more customization, such as increasing memory or using a different architecture from x86_64,
+If you need more customization, such as increasing memory or using a different architecture than x86_64,
 you can provide your own QEMU command in a `.qemu_cmd_line` file.
 It uses the [`g_shell_parse_argv()`](https://docs.gtk.org/glib/func.shell_parse_argv.html) function and not an actual shell to parse the command, so it will only supports simple shell features.
 The core interprets relative paths as relative to the directory containing the `.qemu_cmd_line` file.
