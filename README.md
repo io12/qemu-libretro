@@ -83,6 +83,8 @@ The core interprets relative paths as relative to the directory containing the `
    qemu-system-ppc -boot d -m 512 -L pc-bios -hda mac9_disk.qcow2 -drive file=mac9_installer.iso,format=raw,media=cdrom -M mac99,via=pmu
    ```
 4. Load `mac9.qemu_cmd_line` with the QEMU core and complete the installation.
+   Open "Drive Setup" in the "Utilities" folder, and initialize the volume called "not initialized".
+   Then open the "Mac OS Install" program and complete the installation.
 5. Modify `mac9.qemu_cmd_line` to contain
    ``` sh
    qemu-system-ppc -boot c -m 512M -L pc-bios -hda mac9_disk.qcow2 -M mac99,via=pmu
