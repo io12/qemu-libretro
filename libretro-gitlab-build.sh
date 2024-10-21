@@ -107,23 +107,26 @@ case "$platform" in
                 IOSSDK="$(xcodebuild -version -sdk iphoneos Path)"
                 ARCH=arm64
                 CORE_SUFFIX=libretro_ios
+                MINVER=-miphoneos-version-min=8.0
                 ;;
             ios9)
                 IOSSDK="$(xcodebuild -version -sdk iphoneos Path)"
                 ARCH=armv7
                 CORE_SUFFIX=libretro_ios
+                MINVER=-miphoneos-version-min=5.0
                 ;;
             tvos-arm64)
                 IOSSDK="$(xcodebuild -version -sdk appletvos Path)"
                 ARCH=arm64
                 CORE_SUFFIX=libretro_tvos
+                MINVER=-mappletvos-version-min=11.0
                 ;;
             *)
                 echo "Unknown iOS platform $platform"
                 exit 1
                 ;;
         esac
-        CLANG_CMD="clang -arch $ARCH -isysroot $IOSSDK"
+        CLANG_CMD="clang -arch $ARCH -isysroot $IOSSDK $MINVER"
         EXTRA_CONFIGURE_ARGS=(
             "--enable-tcg-interpreter"
             "--cross-prefix="
