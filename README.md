@@ -29,7 +29,10 @@ The core interprets relative paths as relative to the directory containing the `
 
 ### Windows XP
 
-1. Create an empty disk image with `qemu-img create -f qcow2 winxp_disk.qcow2 12G`.
+1. Create an empty disk image with
+   ``` sh
+   qemu-img create -f qcow2 winxp_disk.qcow2 12G
+   ```
    Change `12G` to the size of the disk you want.
    This core doesn't provide a way to run `qemu-img`, so you will need to make the disk image separately and copy it into the games folder.
 2. Copy the installer ISO to `winxp_installer.iso` in the games folder.
@@ -47,7 +50,10 @@ The core interprets relative paths as relative to the directory containing the `
 
 ### Windows 11
 
-1. Create an empty disk image with `qemu-img create -f qcow2 win11_disk.qcow2 64G`.
+1. Create an empty disk image with
+   ``` sh
+   qemu-img create -f qcow2 win11_disk.qcow2 64G
+   ```
    Change `64G` to the size of the disk you want.
    This core doesn't provide a way to run `qemu-img`, so you will need to make the disk image separately and copy it into the games folder.
 2. Copy the installer ISO to `win11_installer.iso` in the games folder.
@@ -65,7 +71,10 @@ The core interprets relative paths as relative to the directory containing the `
 
 ### MacOS 9.2
 
-1. Create an empty disk image with `qemu-img create -f qcow2 mac9_disk.qcow2 2G`.
+1. Create an empty disk image with
+   ``` sh
+   qemu-img create -f qcow2 mac9_disk.qcow2 2G
+   ```
    Change `2G` to the size of the disk you want.
    This core doesn't provide a way to run `qemu-img`, so you will need to make the disk image separately and copy it into the games folder.
 2. Copy the installer ISO to `mac9_installer.iso` in the games folder.
