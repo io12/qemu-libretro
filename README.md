@@ -53,12 +53,12 @@ The core interprets relative paths as relative to the directory containing the `
 2. Copy the installer ISO to `win11_installer.iso` in the games folder.
 3. Create a text file `win11.qemu_cmd_line` in the games folder containing the command
    ```sh
-   qemu-system-x86_64 -hda win11_disk.qcow2 -cdrom win11_installer.iso -boot d -m 1G
+   qemu-system-x86_64 -hda win11_disk.qcow2 -cdrom win11_installer.iso -boot d -m 1G --cpu Skylake-Client-v3
    ```
 4. Load `win11.qemu_cmd_line` with the QEMU core and complete the installation.
 5. Modify `win11.qemu_cmd_line` to contain
    ```sh
-   qemu-system-x86_64 -hda win11_disk.qcow2 -m 1G
+   qemu-system-x86_64 -hda win11_disk.qcow2 -m 1G --cpu Skylake-Client-v3
    ```
    Change the `1G` to a different amount of RAM if desired. The `win11_installer.iso` file isn't needed anymore and can be deleted.
 6. Load `win11.qemu_cmd_line` with the QEMU core to boot into Windows 11.
