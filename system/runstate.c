@@ -897,4 +897,16 @@ void qemu_cleanup(int status)
     qemu_chr_cleanup();
     user_creatable_cleanup();
     /* TODO: unref root container, check all devices are ok */
+
+    /* Stop all remaining threads */
+    for (;;) {
+        QemuThread *thread = g_queue_pop_head(qemu_thread_queue);
+        if (!thread) {
+            g_queue_free(qemu_thread_queue);
+            break;
+        }
+        pthread_kill(thread->thread, SIGUSR1);
+        qemu_thread_join(thread);
+        g_free(thread);
+    }
 }

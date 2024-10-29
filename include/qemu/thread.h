@@ -55,6 +55,8 @@ extern QemuRecMutexTrylockFunc qemu_rec_mutex_trylock_func;
 extern QemuCondWaitFunc qemu_cond_wait_func;
 extern QemuCondTimedWaitFunc qemu_cond_timedwait_func;
 
+extern GQueue *qemu_thread_queue;
+
 /* convenience macros to bypass the profiler */
 #define qemu_mutex_lock__raw(m)                         \
         qemu_mutex_lock_impl(m, __FILE__, __LINE__)

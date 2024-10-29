@@ -547,6 +547,16 @@ static void *qemu_thread_start(void *args)
     return r;
 }
 
+/* Store list of all threads so they can all be stopped later */
+GQueue *qemu_thread_queue;
+
+static void thread_usr1(int sig)
+{
+    if (sig == SIGUSR1) {
+        pthread_exit(NULL);
+    }
+}
+
 void qemu_thread_create(QemuThread *thread, const char *name,
                        void *(*start_routine)(void*),
                        void *arg, int mode)
@@ -555,14 +565,11 @@ void qemu_thread_create(QemuThread *thread, const char *name,
     int err;
     pthread_attr_t attr;
     QemuThreadArgs *qemu_thread_args;
+    QemuThread *thread_copy;
 
     err = pthread_attr_init(&attr);
     if (err) {
         error_exit(err, __func__);
-    }
-
-    if (mode == QEMU_THREAD_DETACHED) {
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     }
 
     /* Leave signal handling to the iothread.  */
@@ -571,8 +578,13 @@ void qemu_thread_create(QemuThread *thread, const char *name,
     sigdelset(&set, SIGSEGV);
     sigdelset(&set, SIGFPE);
     sigdelset(&set, SIGILL);
+    /* Make all threads terminate on SIGUSR1 */
+    sigdelset(&set, SIGUSR1);
     /* TODO avoid SIGBUS loss on macOS */
     pthread_sigmask(SIG_SETMASK, &set, &oldset);
+
+    /* Make all threads terminate on SIGUSR1 */
+    signal(SIGUSR1, thread_usr1);
 
     qemu_thread_args = g_new0(QemuThreadArgs, 1);
     qemu_thread_args->name = g_strdup(name);
@@ -588,6 +600,13 @@ void qemu_thread_create(QemuThread *thread, const char *name,
     pthread_sigmask(SIG_SETMASK, &oldset, NULL);
 
     pthread_attr_destroy(&attr);
+
+    if (!qemu_thread_queue) {
+        qemu_thread_queue = g_queue_new();
+    }
+    thread_copy = g_new(QemuThread, 1);
+    *thread_copy = *thread;
+    g_queue_push_tail(qemu_thread_queue, thread_copy);
 }
 
 int qemu_thread_set_affinity(QemuThread *thread, unsigned long *host_cpus,

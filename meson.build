@@ -4172,12 +4172,19 @@ if libretro.found()
     )
   endforeach
 
+  # Only export libretro API functions
+  libretro_core_link_args = '-Wl,--exclude-libs,ALL'
+  if host_os == 'darwin'
+    libretro_core_link_args = '-Wl,-exported_symbol,_retro_*'
+  endif
+
   libretro_core = shared_library('qemu_libretro', ['ui/libretro.c', retro_gen_h] + libretro_core_parts + genh,
     dependencies: libretro_core_deps,
     include_directories: include_directories('libretro-common/include'),
     link_whole: libretro_core_parts + libstub,
     install: true,
     gnu_symbol_visibility: 'hidden',
+    link_args: libretro_core_link_args,
   )
 endif
 

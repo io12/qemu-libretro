@@ -14,6 +14,7 @@
 #include "qemu/error-report.h"
 #include "qemu-main.h"
 #include "sysemu/sysemu.h"
+#include "sysemu/runstate.h"
 #include "ui/console.h"
 #include "ui/kbd-state.h"
 #include "audio/audio.h"
@@ -561,8 +562,6 @@ static void register_libretro(void)
 	CALL_QEMU_FUNC(audio_driver_register, &libretro_audio_driver);
 }
 
-static bool exited = false;
-
 void vreport(report_type type, const char *fmt, va_list ap)
 {
 	unsigned duration = 5000; // 5 seconds
@@ -596,13 +595,6 @@ void vreport(report_type type, const char *fmt, va_list ap)
 	       });
 
 	g_free(msg);
-
-	if (level == RETRO_LOG_ERROR) {
-		exited = true;
-		for (;;) {
-			switch_to_main_thread();
-		}
-	}
 }
 
 G_GNUC_PRINTF(1, 2)
@@ -730,7 +722,16 @@ bool retro_load_game_special(unsigned game_type,
 
 void retro_unload_game(void)
 {
-	pthread_kill(emu_thread, SIGTERM);
+	// Request shutdown
+	CALL_QEMU_FUNC(qemu_system_shutdown_request, SHUTDOWN_CAUSE_HOST_UI);
+
+	// Resume thread
+	pthread_mutex_lock(&emu_mutex);
+	emu_waiting = false;
+	pthread_mutex_unlock(&emu_mutex);
+	pthread_cond_signal(&emu_cv);
+
+	// Wait for thread to exit
 	pthread_join(emu_thread, NULL);
 }
 
@@ -751,12 +752,6 @@ size_t retro_get_memory_size(unsigned id)
 
 void retro_run(void)
 {
-	if (exited) {
-		// Send an empty frame so error notifications still display
-		cb_video_refresh(NULL, 0, 0, 0);
-		return;
-	}
-
 	cb_input_poll();
 
 	mouse_dx = cb_input_state(0, RETRO_DEVICE_MOUSE, 0,
