@@ -35,6 +35,7 @@ static const char *target_arch;
 static pthread_t emu_thread;
 static DisplaySurface *surface;
 static QKbdState *kbd;
+static bool exited = false;
 
 static HWVoiceOut *hw_voice_out = NULL;
 static pthread_mutex_t hw_voice_out_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -221,6 +222,35 @@ static void switch_to_main_thread(void)
 	pthread_mutex_unlock(&emu_mutex);
 }
 
+// Wait for emu thread to exit
+static void join_emu_thread(void)
+{
+	// Resume thread
+	pthread_mutex_lock(&emu_mutex);
+	emu_waiting = false;
+	pthread_mutex_unlock(&emu_mutex);
+	pthread_cond_signal(&emu_cv);
+
+	// Wait for thread to exit
+	pthread_join(emu_thread, NULL);
+}
+
+static void emu_thread_exit(void)
+{
+	exited = true;
+
+	if (target_arch && arch_is_valid(target_arch)) {
+		CALL_QEMU_FUNC(qemu_kill_threads);
+	}
+
+	pthread_mutex_lock(&main_mutex);
+	main_waiting = false;
+	pthread_mutex_unlock(&main_mutex);
+	pthread_cond_signal(&main_cv);
+
+	pthread_exit(NULL);
+}
+
 void retro_init(void)
 {
 }
@@ -381,6 +411,10 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 void retro_reset(void)
 {
+	if (!exited) {
+		CALL_QEMU_FUNC(qemu_system_reset_request,
+			       SHUTDOWN_CAUSE_HOST_UI);
+	}
 }
 
 static void *audio_init(Audiodev *dev, Error **errp)
@@ -595,6 +629,10 @@ void vreport(report_type type, const char *fmt, va_list ap)
 	       });
 
 	g_free(msg);
+
+	if (level == RETRO_LOG_ERROR) {
+		emu_thread_exit();
+	}
 }
 
 G_GNUC_PRINTF(1, 2)
@@ -626,6 +664,8 @@ static void start_qemu_with_args(const char *argv[])
 	CALL_QEMU_FUNC(rcu_init);
 	CALL_QEMU_FUNC(qemu_init, argc, (char **)argv);
 	CALL_QEMU_FUNC(qemu_default_main);
+
+	emu_thread_exit();
 }
 
 size_t retro_serialize_size(void)
@@ -698,7 +738,6 @@ static void *emu_thread_fn(void *arg)
 		start_qemu_with_args(
 			(const char *[]){ QEMU_CMD, game_path, NULL });
 	}
-	early_error_report("exited");
 	return NULL;
 }
 
@@ -722,17 +761,12 @@ bool retro_load_game_special(unsigned game_type,
 
 void retro_unload_game(void)
 {
-	// Request shutdown
-	CALL_QEMU_FUNC(qemu_system_shutdown_request, SHUTDOWN_CAUSE_HOST_UI);
-
-	// Resume thread
-	pthread_mutex_lock(&emu_mutex);
-	emu_waiting = false;
-	pthread_mutex_unlock(&emu_mutex);
-	pthread_cond_signal(&emu_cv);
-
-	// Wait for thread to exit
-	pthread_join(emu_thread, NULL);
+	if (!exited) {
+		// Request shutdown
+		CALL_QEMU_FUNC(qemu_system_shutdown_request,
+			       SHUTDOWN_CAUSE_HOST_UI);
+	}
+	join_emu_thread();
 }
 
 unsigned retro_get_region(void)
@@ -769,7 +803,19 @@ void retro_run(void)
 	BTN(WHEEL_DOWN, WHEELDOWN);
 #undef BTN
 
+	if (exited) {
+		join_emu_thread();
+		cb_env(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+		return;
+	}
+
 	switch_to_emu_thread();
+
+	if (exited) {
+		join_emu_thread();
+		cb_env(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+		return;
+	}
 
 	int w = surface_width(surface);
 	int h = surface_height(surface);

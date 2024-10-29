@@ -4143,6 +4143,15 @@ if libretro.found()
   endforeach
   retro_gen_h += '({ early_error_report("unsupported architecture \'%s\'", target_arch); ' + prefixed_fn_call + ' })'
   retro_gen_h += ')\n'
+  retro_gen_h += 'static inline bool arch_is_valid(const char *arch) { return false'
+  foreach target : target_dirs
+    if not target.endswith('-softmmu')
+      continue
+    endif
+    target_arch = target.split('-')[0]
+    retro_gen_h += '|| !strcmp(arch, "' + target_arch + '")'
+   endforeach
+  retro_gen_h += '; }\n'
   retro_gen_h = custom_target('retro-gen.h',
     output: 'retro-gen.h',
     capture: true,

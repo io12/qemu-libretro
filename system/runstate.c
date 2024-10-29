@@ -852,6 +852,26 @@ void qemu_init_subsystems(void)
     socket_init();
 }
 
+/* Stop all remaining threads */
+void qemu_kill_threads(void)
+{
+    if (!qemu_thread_queue) {
+        return;
+    }
+
+    for (;;) {
+        QemuThread *thread = g_queue_pop_head(qemu_thread_queue);
+        if (!thread) {
+            break;
+        }
+        pthread_kill(thread->thread, SIGUSR1);
+        qemu_thread_join(thread);
+        g_free(thread);
+    }
+
+    g_queue_free(qemu_thread_queue);
+    qemu_thread_queue = NULL;
+}
 
 void qemu_cleanup(int status)
 {
@@ -897,16 +917,4 @@ void qemu_cleanup(int status)
     qemu_chr_cleanup();
     user_creatable_cleanup();
     /* TODO: unref root container, check all devices are ok */
-
-    /* Stop all remaining threads */
-    for (;;) {
-        QemuThread *thread = g_queue_pop_head(qemu_thread_queue);
-        if (!thread) {
-            g_queue_free(qemu_thread_queue);
-            break;
-        }
-        pthread_kill(thread->thread, SIGUSR1);
-        qemu_thread_join(thread);
-        g_free(thread);
-    }
 }
