@@ -477,12 +477,45 @@ static bool set_thread_description(HANDLE h, const char *name)
     return SUCCEEDED(hr);
 }
 
+/* Store list of all threads so they can all be stopped later */
+static GQueue *qemu_thread_queue;
+
+/* Stop all remaining threads */
+void qemu_thread_kill_all(void)
+{
+    QemuThread *thread;
+    HANDLE hThread;
+
+    if (!qemu_thread_queue) {
+        return;
+    }
+
+    for (;;) {
+        thread = g_queue_pop_head(qemu_thread_queue);
+        if (!thread) {
+            break;
+        }
+        hThread = qemu_thread_get_handle(thread);
+        if (!hThread) {
+            break;
+        }
+        TerminateThread(hThread, 0);
+        CloseHandle(hThread);
+        qemu_thread_join(thread);
+        g_free(thread);
+    }
+
+    g_queue_free(qemu_thread_queue);
+    qemu_thread_queue = NULL;
+}
+
 void qemu_thread_create(QemuThread *thread, const char *name,
                        void *(*start_routine)(void *),
                        void *arg, int mode)
 {
     HANDLE hThread;
     struct QemuThreadData *data;
+    QemuThread *thread_copy;
 
     data = g_malloc(sizeof *data);
     data->start_routine = start_routine;
@@ -506,6 +539,13 @@ void qemu_thread_create(QemuThread *thread, const char *name,
     CloseHandle(hThread);
 
     thread->data = data;
+
+    if (!qemu_thread_queue) {
+        qemu_thread_queue = g_queue_new();
+    }
+    thread_copy = g_new(QemuThread, 1);
+    *thread_copy = *thread;
+    g_queue_push_tail(qemu_thread_queue, thread_copy);
 }
 
 int qemu_thread_set_affinity(QemuThread *thread, unsigned long *host_cpus,

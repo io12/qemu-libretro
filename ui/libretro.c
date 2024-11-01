@@ -240,7 +240,7 @@ static void emu_thread_exit(void)
 	exited = true;
 
 	if (target_arch && arch_is_valid(target_arch)) {
-		CALL_QEMU_FUNC(qemu_kill_threads);
+		CALL_QEMU_FUNC(qemu_thread_kill_all);
 	}
 
 	pthread_mutex_lock(&main_mutex);

@@ -548,13 +548,33 @@ static void *qemu_thread_start(void *args)
 }
 
 /* Store list of all threads so they can all be stopped later */
-GQueue *qemu_thread_queue;
+static GQueue *qemu_thread_queue;
 
-static void thread_usr1(int sig)
+/* Stop all remaining threads */
+void qemu_thread_kill_all(void)
 {
-    if (sig == SIGUSR1) {
-        pthread_exit(NULL);
+    if (!qemu_thread_queue) {
+        return;
     }
+
+    for (;;) {
+        QemuThread *thread = g_queue_pop_head(qemu_thread_queue);
+        if (!thread) {
+            break;
+        }
+        pthread_kill(thread->thread, SIGUSR1);
+        qemu_thread_join(thread);
+        g_free(thread);
+    }
+
+    g_queue_free(qemu_thread_queue);
+    qemu_thread_queue = NULL;
+}
+
+static void thread_sigusr1(int sig)
+{
+    g_assert(sig == SIGUSR1);
+    pthread_exit(NULL);
 }
 
 void qemu_thread_create(QemuThread *thread, const char *name,
@@ -584,7 +604,7 @@ void qemu_thread_create(QemuThread *thread, const char *name,
     pthread_sigmask(SIG_SETMASK, &set, &oldset);
 
     /* Make all threads terminate on SIGUSR1 */
-    signal(SIGUSR1, thread_usr1);
+    signal(SIGUSR1, thread_sigusr1);
 
     qemu_thread_args = g_new0(QemuThreadArgs, 1);
     qemu_thread_args->name = g_strdup(name);
