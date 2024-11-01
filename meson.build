@@ -4172,6 +4172,7 @@ if libretro.found()
       command: [
         python,
         prefix_script,
+        host_os,
         nm,
         objcopy,
         name.replace('qemu-system-', ''),

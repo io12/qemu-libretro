@@ -56,6 +56,7 @@ def make_substs(stdout, target, all_syms):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("host_os")
     ap.add_argument("nm")
     ap.add_argument("objcopy")
     ap.add_argument("target")
@@ -70,7 +71,12 @@ def main():
     )
     if pc.returncode != 0:
         sys.exit(1)
-    all_syms = set(line.split()[0] for line in pc.stdout.splitlines())
+
+    all_syms = (
+        set(line.split()[0] for line in pc.stdout.splitlines())
+        if args.host_os == "windows"
+        else set()
+    )
 
     pc = subprocess.run(
         [args.nm, "-P", "--extern-only", "--defined-only", args.input],
