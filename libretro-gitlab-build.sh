@@ -37,6 +37,14 @@ case "$platform" in
         EXTRA_PATH=$ANDROID_NDK_LLVM/bin
         CORE_SUFFIX=libretro_android
         LIB_EXT=so
+        export AR=llvm-ar
+        export AS=llvm-as
+        export DLLTOOL=llvm-dlltool
+        export OBJCOPY=llvm-objcopy
+        export RANLIB=llvm-ranlib
+        export NM=llvm-nm
+        export STRIP=llvm-strip
+        export WINDRES=llvm-windres
         case "$platform" in
             android-arm)
                 EXTRA_CONFIGURE_ARGS=(
