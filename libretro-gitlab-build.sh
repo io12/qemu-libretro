@@ -167,6 +167,7 @@ CFLAGS="-Os -Wno-error -Wno-nested-externs -Wno-redundant-decls" ../configure \
     --without-default-features \
     --glib=internal \
     --zlib=internal \
+    --enable-zstd \
     --disable-pie \
     --enable-fdt=internal \
     --disable-modules \
