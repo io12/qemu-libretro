@@ -1280,7 +1280,16 @@ zstd = not_found
 if not get_option('zstd').auto() or have_block
   zstd = dependency('libzstd', version: '>=1.4.0',
                     required: get_option('zstd'),
-                    method: 'pkg-config')
+                    method: 'pkg-config',
+                    default_options: [
+                      'default_library=static',
+                      'bin_programs=false',
+                      'multi_thread=disabled',
+                      'zlib=disabled',
+                      'lzma=disabled',
+                      'lz4=disabled',
+                      'debug_level=0',
+                    ])
 endif
 qpl = not_found
 if not get_option('qpl').auto() or have_system
@@ -3918,7 +3927,7 @@ if host_os == 'darwin'
   entitlement = find_program('scripts/entitlement.sh')
 endif
 
-libretro_core_deps = [util_ss.dependencies(), fdt, libm, threads, glib, gmodule, socket, malloc]
+libretro_core_deps = [util_ss.dependencies(), fdt, libm, threads, glib, gmodule, socket, malloc, zstd]
 if get_option('tcg_interpreter')
   libretro_core_deps += dependency(
     'libffi',

@@ -1,0 +1,23 @@
+diff --git a/build/meson/lib/meson.build b/build/meson/lib/meson.build
+index d086fc2..56e7552 100644
+--- a/build/meson/lib/meson.build
++++ b/build/meson/lib/meson.build
+@@ -80,7 +80,9 @@ if use_multi_thread
+   libzstd_deps = [ thread_dep ]
+ endif
+ 
+-libzstd_c_args = []
++# QEMU passes -D_GNU_SOURCE globally, which makes zstd assume qsort_r()
++# exists (not true on Android or mingw). Undo it so zstd_deps.h decides.
++libzstd_c_args = ['-U_GNU_SOURCE']
+ if cc_id == compiler_msvc
+   if default_library_type != 'static'
+     libzstd_sources += [windows_mod.compile_resources(
+@@ -121,6 +123,7 @@ libzstd = library('zstd',
+   c_args: libzstd_c_args,
+   gnu_symbol_visibility: 'hidden',
+   dependencies: libzstd_deps,
++  pic : true,
+   install: true,
+   version: zstd_libversion)
+ 
