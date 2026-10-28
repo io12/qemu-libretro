@@ -85,8 +85,7 @@ case "$platform" in
         esac
         ;;
     win32|win64)
-        apt-get -y install python3.8-venv
-        python3.8 -m pip install distlib tomli meson
+        python3 -m pip install --break-system-packages distlib tomli meson
         LIB_EXT=dll
         case "$platform" in
             win32)
