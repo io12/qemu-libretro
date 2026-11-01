@@ -222,9 +222,16 @@ static void switch_to_main_thread(void)
 	pthread_mutex_unlock(&emu_mutex);
 }
 
-// Wait for emu thread to exit
+// Wait for emu thread to exit. retro_run joins it when it exits on its own and
+// retro_unload_game joins it too, but a thread can only be joined once.
 static void join_emu_thread(void)
 {
+	static bool joined = false;
+	if (joined) {
+		return;
+	}
+	joined = true;
+
 	// Resume thread
 	pthread_mutex_lock(&emu_mutex);
 	emu_waiting = false;
