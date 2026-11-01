@@ -1,0 +1,19 @@
+linux-user: pass personality's argument as the 32-bit value the kernel uses
+
+For 32-bit guests, personality(0xffffffff) (a query, which bionic makes at
+startup) reached the host sign-extended to 0xffffffffffffffff. The kernel
+only looks at the low 32 bits, but seccomp filters that allow personality
+for specific values (like Docker's default profile) compare all 64 bits and
+reject it, so the guest gets ENOSYS.
+
+--- a/linux-user/syscall.c
++++ b/linux-user/syscall.c
+@@ -11843,7 +11843,7 @@
+     case TARGET_NR_fchdir:
+         return get_errno(fchdir(arg1));
+     case TARGET_NR_personality:
+-        return get_errno(personality(arg1));
++        return get_errno(personality((abi_uint)arg1));
+ #ifdef TARGET_NR__llseek /* Not on alpha */
+     case TARGET_NR__llseek:
+         {

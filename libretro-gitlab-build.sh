@@ -12,6 +12,8 @@ join() {
 EXTRA_PATH=
 CORE_SUFFIX=libretro
 EXTRA_CONFIGURE_ARGS=()
+# More configure arguments from the environment, e.g. --enable-sanitizers
+read -ra USER_CONFIGURE_ARGS <<<"${QEMU_LIBRETRO_CONFIGURE_ARGS:-}"
 
 if command -v apt-get &> /dev/null; then
     apt-get update
@@ -175,7 +177,8 @@ CFLAGS="-Os -Wno-error -Wno-nested-externs -Wno-redundant-decls" ../configure \
     --audio-drv-list=libretro \
     --disable-sdl \
     -Dwrap_mode=forcefallback \
-    ${EXTRA_CONFIGURE_ARGS[@]+"${EXTRA_CONFIGURE_ARGS[@]}"}
+    ${EXTRA_CONFIGURE_ARGS[@]+"${EXTRA_CONFIGURE_ARGS[@]}"} \
+    ${USER_CONFIGURE_ARGS[@]+"${USER_CONFIGURE_ARGS[@]}"}
 
 BUILD_OUT=libqemu_libretro.$LIB_EXT
 make -j$NUMPROC $BUILD_OUT

@@ -19,3 +19,5 @@ GTAGS
 *.depend_raw
 *.swp
 *.gcov
+/ci-build
+/result*
