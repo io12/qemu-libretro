@@ -34,6 +34,11 @@ static const char *system_dir;
 static const char *target_arch;
 static pthread_t emu_thread;
 static DisplaySurface *surface;
+// The frontend may redraw the last frame it was given (e.g. while
+// SET_SYSTEM_AV_INFO reinitializes video), but QEMU frees a surface as soon
+// as it switches to a new one, so frames are presented from this copy.
+static void *frame_buf;
+static size_t frame_buf_size;
 static QKbdState *kbd;
 static bool exited = false;
 
@@ -264,6 +269,9 @@ void retro_init(void)
 
 void retro_deinit(void)
 {
+	g_free(frame_buf);
+	frame_buf = NULL;
+	frame_buf_size = 0;
 }
 
 unsigned retro_api_version(void)
@@ -834,5 +842,15 @@ void retro_run(void)
 	}
 	pthread_mutex_unlock(&av_info_lock);
 
-	cb_video_refresh(surface_data(surface), w, h, surface_stride(surface));
+	// Only replace frame_buf after SET_SYSTEM_AV_INFO, which may still
+	// redraw the previous frame from it
+	size_t stride = surface_stride(surface);
+	size_t size = stride * h;
+	if (size > frame_buf_size) {
+		g_free(frame_buf);
+		frame_buf = g_malloc(size);
+		frame_buf_size = size;
+	}
+	memcpy(frame_buf, surface_data(surface), size);
+	cb_video_refresh(frame_buf, w, h, stride);
 }
