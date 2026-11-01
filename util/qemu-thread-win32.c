@@ -491,17 +491,24 @@ void qemu_thread_kill_all(void)
     }
 
     for (;;) {
+        QemuThreadData *data;
+
         thread = g_queue_pop_head(qemu_thread_queue);
         if (!thread) {
             break;
         }
-        hThread = qemu_thread_get_handle(thread);
-        if (!hThread) {
-            break;
+        data = thread->data;
+        EnterCriticalSection(&data->cs);
+        hThread = data->exited ? NULL :
+            OpenThread(SYNCHRONIZE | THREAD_TERMINATE, FALSE, thread->tid);
+        LeaveCriticalSection(&data->cs);
+        if (hThread) {
+            TerminateThread(hThread, 0);
+            WaitForSingleObject(hThread, INFINITE);
+            CloseHandle(hThread);
         }
-        TerminateThread(hThread, 0);
-        CloseHandle(hThread);
-        qemu_thread_join(thread);
+        DeleteCriticalSection(&data->cs);
+        g_free(data);
         g_free(thread);
     }
 
@@ -520,13 +527,14 @@ void qemu_thread_create(QemuThread *thread, const char *name,
     data = g_malloc(sizeof *data);
     data->start_routine = start_routine;
     data->arg = arg;
-    data->mode = mode;
+    /*
+     * Like the POSIX version, keep every thread joinable, so that
+     * qemu_thread_kill_all can stop and free them all when the core stops
+     */
+    data->mode = QEMU_THREAD_JOINABLE;
     data->exited = false;
     notifier_list_init(&data->exit);
-
-    if (data->mode != QEMU_THREAD_DETACHED) {
-        InitializeCriticalSection(&data->cs);
-    }
+    InitializeCriticalSection(&data->cs);
 
     hThread = (HANDLE) _beginthreadex(NULL, 0, win32_start_routine,
                                       data, 0, &thread->tid);
